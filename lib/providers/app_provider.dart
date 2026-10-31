@@ -33,20 +33,40 @@ class AppProvider extends ChangeNotifier {
     _pinCode = prefs.getString(_kPin) ?? '1234';
 
     final s = prefs.getString(_kStudents);
-    if (s != null) { try { students = (jsonDecode(s) as List).map((e) => Student.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); } }
+    if (s != null) {
+      try {
+        students = (jsonDecode(s) as List).map((e) => Student.fromJson(e)).toList();
+      } catch (e) {
+        debugPrint('$e');
+      }
+    }
 
     final tx = prefs.getString(_kTransactions);
-    if (tx != null) { try { transactions = (jsonDecode(tx) as List).map((e) => FinancialTransaction.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); } }
+    if (tx != null) {
+      try {
+        transactions = (jsonDecode(tx) as List).map((e) => FinancialTransaction.fromJson(e)).toList();
+      } catch (e) {
+        debugPrint('$e');
+      }
+    }
 
     final st = prefs.getString(_kSettings);
-    if (st != null) { try { settings = AppSettings.fromJson(jsonDecode(st)); } catch (e) { debugPrint('$e'); } }
+    if (st != null) {
+      try {
+        settings = AppSettings.fromJson(jsonDecode(st));
+      } catch (e) {
+        debugPrint('$e');
+      }
+    }
 
     final cf = prefs.getString(_kClassFees);
     if (cf != null) {
-      try { 
+      try {
         final Map<String, dynamic> decoded = jsonDecode(cf);
         _classFees = decoded.map((key, value) => MapEntry(key, (value as num).toDouble()));
-      } catch (e) { debugPrint('$e'); }
+      } catch (e) {
+        debugPrint('$e');
+      }
     }
     isLoading = false;
     notifyListeners();
@@ -61,25 +81,58 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setClassFee(String key, double fee) async { _classFees[key] = fee; await _save(); }
+  Future<void> setClassFee(String key, double fee) async {
+    _classFees[key] = fee;
+    await _save();
+  }
+
   double getClassFee(String key) => _classFees[key] ?? 200000;
 
-  Future<void> savePin(String pin) async { final prefs = await SharedPreferences.getInstance(); _pinCode = pin; await prefs.setString(_kPin, pin); notifyListeners(); }
+  Future<void> savePin(String pin) async {
+    final prefs = await SharedPreferences.getInstance();
+    _pinCode = pin;
+    await prefs.setString(_kPin, pin);
+    notifyListeners();
+  }
+
   bool checkPin(String input) => input == _pinCode;
   void unlock() { isUnlocked = true; notifyListeners(); }
   void lock() { isUnlocked = false; notifyListeners(); }
   String newId() => _uuid.v4();
 
-  Future<void> addStudent(Student s) async { students.add(s); await _save(); }
-  Future<void> addMultipleStudents(List<Student> newStudents) async { students.addAll(newStudents); await _save(); }
-  Future<void> updateStudent(Student s) async { final i = students.indexWhere((e) => e.id == s.id); if (i > -1) students[i] = s; await _save(); }
-  Future<void> deleteStudent(String id) async { students.removeWhere((e) => e.id == id); await _save(); }
-  Student? getStudentById(String id) { try { return students.firstWhere((e) => e.id == id); } catch (_) { return null; } }
+  Future<void> addStudent(Student s) async {
+    students.add(s);
+    await _save();
+  }
 
-  Future<void> addPayment(String studentId, Payment p) async { 
-    final s = students.firstWhere((e) => e.id == studentId); 
-    s.payments.add(p); 
-    
+  Future<void> addMultipleStudents(List<Student> newStudents) async {
+    students.addAll(newStudents);
+    await _save();
+  }
+
+  Future<void> updateStudent(Student s) async {
+    final i = students.indexWhere((e) => e.id == s.id);
+    if (i > -1) students[i] = s;
+    await _save();
+  }
+
+  Future<void> deleteStudent(String id) async {
+    students.removeWhere((e) => e.id == id);
+    await _save();
+  }
+
+  Student? getStudentById(String id) {
+    try {
+      return students.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> addPayment(String studentId, Payment p) async {
+    final s = students.firstWhere((e) => e.id == studentId);
+    s.payments.add(p);
+
     final isCash = p.method == PaymentMethod.cash;
     final newTx = FinancialTransaction(
       id: newId(),
@@ -88,20 +141,23 @@ class AppProvider extends ChangeNotifier {
       entityName: s.name,
       amount: p.amount,
       date: p.date,
-      referenceNumber: p.reference // تم التصحيح هنا
+      referenceNumber: p.reference,
     );
     transactions.add(newTx);
-    await _save(); 
+    await _save();
   }
 
-  Future<void> removePayment(String studentId, String paymentId) async { 
-    final s = students.firstWhere((e) => e.id == studentId); 
-    s.payments.removeWhere((p) => p.id == paymentId); 
-    await _save(); 
+  Future<void> removePayment(String studentId, String paymentId) async {
+    final s = students.firstWhere((e) => e.id == studentId);
+    s.payments.removeWhere((p) => p.id == paymentId);
+    await _save();
   }
-  
-  Future<void> addTransaction(FinancialTransaction tx) async { transactions.add(tx); await _save(); }
-  
+
+  Future<void> addTransaction(FinancialTransaction tx) async {
+    transactions.add(tx);
+    await _save();
+  }
+
   Future<void> updateTransaction(FinancialTransaction updatedTx) async {
     final i = transactions.indexWhere((e) => e.id == updatedTx.id);
     if (i > -1) transactions[i] = updatedTx;
@@ -113,7 +169,10 @@ class AppProvider extends ChangeNotifier {
     await _save();
   }
 
-  Future<void> saveSettings(AppSettings s) async { settings = s; await _save(); }
+  Future<void> saveSettings(AppSettings s) async {
+    settings = s;
+    await _save();
+  }
 
   double get cashBalance {
     double balance = 0;
@@ -145,10 +204,24 @@ class AppProvider extends ChangeNotifier {
     return balance;
   }
 
+  // دالة تصدير البيانات مع اسم الملف الجديد
   Future<void> exportData() async {
-    final data = jsonEncode({'students': students.map((e) => e.toJson()).toList(), 'transactions': transactions.map((e) => e.toJson()).toList(), 'settings': settings.toJson(), 'pin': _pinCode});
-    final file = XFile.fromData(utf8.encode(data), name: 'backup.json', mimeType: 'application/json');
-    await Share.shareXFiles([file], text: 'نسخة احتياطية');
+    final data = jsonEncode({
+      'students': students.map((e) => e.toJson()).toList(),
+      'transactions': transactions.map((e) => e.toJson()).toList(),
+      'settings': settings.toJson(),
+      'pin': _pinCode,
+    });
+    
+    final fileName = 'Mamx_For_Schools_${DateTime.now().millisecondsSinceEpoch}.json';
+    
+    final file = XFile.fromData(
+      utf8.encode(data), 
+      name: fileName, 
+      mimeType: 'application/json'
+    );
+    
+    await Share.shareXFiles([file], text: 'نسخة احتياطية من بيانات رسوم الطلاب');
   }
 
   Future<bool> importData() async {
@@ -162,7 +235,9 @@ class AppProvider extends ChangeNotifier {
         if (data['pin'] != null) _pinCode = data['pin'];
         await _save();
         return true;
-      } catch (e) { return false; }
+      } catch (e) {
+        return false;
+      }
     }
     return false;
   }
@@ -188,8 +263,11 @@ class AppProvider extends ChangeNotifier {
     if (paid >= required) return;
     final now = DateTime.now();
     final days = DateTime(due.year, due.month, due.day).difference(DateTime(now.year, now.month, now.day)).inDays;
-    if (days < 0) out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': true, 'due': due});
-    else if (days <= settings.warnDays) out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': false, 'due': due});
+    if (days < 0) {
+      out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': true, 'due': due});
+    } else if (days <= settings.warnDays) {
+      out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': false, 'due': due});
+    }
   }
 
   List<Student> filterStudents({String search = '', Stage? stage, int? cls}) {
