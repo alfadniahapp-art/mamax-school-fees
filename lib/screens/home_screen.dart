@@ -10,6 +10,7 @@ import 'lock_screen.dart';
 import 'class_management_screen.dart';
 import 'reports_screen.dart';
 import 'student_form_screen.dart';
+import 'treasury_screen.dart'; // استيراد شاشة الخزينة
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,12 +41,33 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('لوحة التحكم', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.bar_chart), tooltip: 'التقارير', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()))),
-          IconButton(icon: const Icon(Icons.settings), tooltip: 'الإعدادات', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
-          IconButton(icon: const Icon(Icons.lock_outline), tooltip: 'قفل', onPressed: () {
-            app.lock();
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LockScreen()));
-          }),
+          // زر الخزينة
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet),
+            tooltip: 'الخزينة',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TreasuryScreen())),
+          ),
+          // زر التقارير
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            tooltip: 'التقارير',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
+          ),
+          // زر الإعدادات
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'الإعدادات',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+          ),
+          // زر القفل
+          IconButton(
+            icon: const Icon(Icons.lock_outline),
+            tooltip: 'قفل',
+            onPressed: () {
+              app.lock();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LockScreen()));
+            },
+          ),
         ],
       ),
       body: Column(
