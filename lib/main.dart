@@ -35,7 +35,7 @@ class MamaxApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      // إجبار الوضع الفاتح دائماً (حتى لو كان الهاتف في الوضع الليلي)
+      // إجبار الوضع الفاتح دائماً
       themeMode: ThemeMode.light, 
       theme: ThemeData(
         useMaterial3: true,
