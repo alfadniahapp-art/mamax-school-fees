@@ -48,12 +48,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProv = context.watch<ThemeProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(title: const Text('الإعدادات')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _card('المظهر والألوان', [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('الوضع الليلي (Dark Mode)'),
+              secondary: Icon(themeProv.isDark ? Icons.dark_mode : Icons.light_mode, color: AppColors.primary(context)),
+              value: themeProv.isDark,
+              onChanged: (v) => themeProv.toggleTheme(),
+            ),
+            const Divider(),
+            const Text('اللون الأساسي للتطبيق', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _colorDot(const Color(0xFF0F766E), themeProv),
+                _colorDot(const Color(0xFF2563EB), themeProv),
+                _colorDot(const Color(0xFF7C3AED), themeProv),
+                _colorDot(const Color(0xFFDC2626), themeProv),
+                _colorDot(const Color(0xFF1F2937), themeProv),
+              ],
+            ),
+          ]),
+          _card('نسب الأقساط', [
+            Row(
+              children: [
+                Expanded(child: TextField(controller: _pctA, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط أول %'))),
+                const SizedBox(width: 8),
+                Expanded(child: TextField(controller: _pctB, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط ثاني %'))),
+                const SizedBox(width: 8),
+                Expanded(child: TextField(controller: _pctC, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط أخير %'))),
+              ],
+            ),
+          ]),
           _card('بيانات البنك', [
             TextField(controller: _bankNameCtrl, decoration: const InputDecoration(labelText: 'اسم البنك')),
             const SizedBox(height: 8),
@@ -70,6 +105,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('حفظ الإعدادات')
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _colorDot(Color color, ThemeProvider themeProv) {
+    final isSelected = themeProv.primaryColor == color;
+    return GestureDetector(
+      onTap: () => themeProv.changePrimaryColor(color),
+      child: Container(
+        width: 36, height: 36,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+        ),
+        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
       ),
     );
   }
