@@ -16,56 +16,72 @@ class TreasuryScreen extends StatelessWidget {
     final currentBalance = totalDeposits - totalWithdraws;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      appBar: AppBar(title: const Text('الخزينة والحسابات')),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('الخزينة والحسابات', style: TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // بطاقة الرصيد الحالي
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [AppColors.primary(context), AppColors.primary(context).withOpacity(0.7)], begin: Alignment.topRight, end: Alignment.bottomLeft),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+              gradient: LinearGradient(
+                colors: [AppColors.primary(context), AppColors.primary(context).withOpacity(0.8)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
             ),
             child: Column(
               children: [
-                const Text('الرصيد الحالي', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                const SizedBox(height: 8),
-                Text(money(currentBalance), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
+                const Text('الرصيد الحالي (الإجمالي)', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 10),
+                Text(money(currentBalance), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 36)),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
+          
+          // بطاقات الإجماليات
           Row(
             children: [
               Expanded(child: _balanceCard('إجمالي الإيداعات', totalDeposits, Icons.arrow_downward, AppColors.ok)),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(child: _balanceCard('إجمالي السحوبات', totalWithdraws, Icons.arrow_upward, AppColors.none)),
             ],
           ),
           const SizedBox(height: 16),
+          
           Row(
             children: [
-              Expanded(child: _balanceCard('رصيد الصندوق', app.cashBalance, Icons.money, Colors.green)),
-              const SizedBox(width: 12),
-              Expanded(child: _balanceCard('رصيد البنك', app.bankBalance, Icons.account_balance, Colors.blue)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(child: _actionBtn('إيداع', Icons.add_circle, Colors.green, () => _showTransactionDialog(context, 'deposit'))),
-              const SizedBox(width: 8),
-              Expanded(child: _actionBtn('سحب', Icons.remove_circle, Colors.red, () => _showTransactionDialog(context, 'withdraw'))),
-              const SizedBox(width: 8),
-              Expanded(child: _actionBtn('تحويل', Icons.swap_horiz, Colors.orange, () => _showTransactionDialog(context, 'transfer'))),
+              Expanded(child: _balanceCard('رصيد الصندوق', app.cashBalance, Icons.money, Colors.green.shade600)),
+              const SizedBox(width: 16),
+              Expanded(child: _balanceCard('رصيد البنك', app.bankBalance, Icons.account_balance, Colors.blue.shade600)),
             ],
           ),
           const SizedBox(height: 24),
-          const Text('سجل العمليات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 10),
+          
+          // أزرار العمليات
+          Row(
+            children: [
+              Expanded(child: _actionBtn('إيداع', Icons.add_circle, Colors.green.shade600, () => _showTransactionDialog(context, 'deposit'))),
+              const SizedBox(width: 10),
+              Expanded(child: _actionBtn('سحب', Icons.remove_circle, Colors.red.shade600, () => _showTransactionDialog(context, 'withdraw'))),
+              const SizedBox(width: 10),
+              Expanded(child: _actionBtn('تحويل', Icons.swap_horiz, Colors.orange.shade600, () => _showTransactionDialog(context, 'transfer'))),
+            ],
+          ),
+          const SizedBox(height: 30),
+          
+          // سجل العمليات
+          const Text('سجل العمليات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 12),
           if (app.transactions.isEmpty)
             const Center(child: Text('لا توجد عمليات مالية', style: TextStyle(color: Colors.grey)))
           else
@@ -78,13 +94,22 @@ class TreasuryScreen extends StatelessWidget {
   Widget _balanceCard(String label, double balance, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(20), 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
+      ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-          Text(money(balance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text(money(balance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
         ],
       ),
     );
@@ -93,8 +118,21 @@ class TreasuryScreen extends StatelessWidget {
   Widget _actionBtn(String label, IconData icon, Color color, VoidCallback onTap) {
     return ElevatedButton(
       onPressed: onTap,
-      style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-      child: Column(children: [Icon(icon, size: 22), const SizedBox(height: 4), Text(label, style: const TextStyle(fontSize: 12))]),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color, 
+        foregroundColor: Colors.white, 
+        padding: const EdgeInsets.symmetric(vertical: 16), 
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 3,
+        shadowColor: color.withOpacity(0.4),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 24), 
+          const SizedBox(height: 6), 
+          Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))
+        ]
+      ),
     );
   }
 
@@ -104,16 +142,26 @@ class TreasuryScreen extends StatelessWidget {
     final color = isDeposit ? AppColors.ok : isWithdraw ? AppColors.none : AppColors.secondary;
     final label = isDeposit ? 'إيداع' : isWithdraw ? 'سحب' : 'تحويل';
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(16), 
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))]
+      ),
       child: ListTile(
-        leading: CircleAvatar(backgroundColor: color.withOpacity(0.1), child: Icon(isDeposit ? Icons.arrow_downward : isWithdraw ? Icons.arrow_upward : Icons.swap_horiz, color: color, size: 18)),
-        title: Text('$label - ${tx.entityName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: CircleAvatar(
+          backgroundColor: color.withOpacity(0.1), 
+          child: Icon(isDeposit ? Icons.arrow_downward : isWithdraw ? Icons.arrow_upward : Icons.swap_horiz, color: color, size: 20)
+        ),
+        title: Text('$label - ${tx.entityName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         subtitle: Text('${dateStr(tx.date)} • ${tx.method == 'cash' ? 'كاش' : 'بنك'}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(money(tx.amount), style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            Text(money(tx.amount), style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit') _showTransactionDialog(context, tx.type, existingTx: tx);
@@ -164,42 +212,46 @@ class TreasuryScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) {
           return Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 20, right: 20, top: 20),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(existingTx != null ? 'تعديل العملية' : (type == 'deposit' ? 'إيداع جديد' : type == 'withdraw' ? 'سحب جديد' : 'تحويل جديد'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
                   const SizedBox(height: 16),
-                  TextField(controller: entityCtrl, decoration: InputDecoration(labelText: type == 'deposit' ? 'اسم المودع' : 'جهة السحب'), keyboardType: TextInputType.text),
+                  Text(existingTx != null ? 'تعديل العملية' : (type == 'deposit' ? 'إيداع جديد' : type == 'withdraw' ? 'سحب جديد' : 'تحويل جديد'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  
+                  TextField(controller: entityCtrl, decoration: _dialogInputDecoration(type == 'deposit' ? 'اسم المودع' : 'جهة السحب'), keyboardType: TextInputType.text),
                   const SizedBox(height: 12),
-                  TextField(controller: amountCtrl, decoration: const InputDecoration(labelText: 'المبلغ'), keyboardType: TextInputType.number),
+                  TextField(controller: amountCtrl, decoration: _dialogInputDecoration('المبلغ'), keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   
                   if (type == 'transfer') ...[
-                    DropdownButtonFormField<String>(value: fromAcc, decoration: const InputDecoration(labelText: 'من حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => fromAcc = v!)),
+                    DropdownButtonFormField<String>(value: fromAcc, decoration: _dialogInputDecoration('من حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => fromAcc = v!)),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(value: toAcc, decoration: const InputDecoration(labelText: 'إلى حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => toAcc = v!)),
+                    DropdownButtonFormField<String>(value: toAcc, decoration: _dialogInputDecoration('إلى حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => toAcc = v!)),
                   ] else ...[
-                    DropdownButtonFormField<String>(value: method, decoration: const InputDecoration(labelText: 'طريقة الدفع'), items: const [DropdownMenuItem(value: 'cash', child: Text('كاش (صندوق)')), DropdownMenuItem(value: 'bank', child: Text('بنك'))], onChanged: (v) => setState(() => method = v!)),
+                    DropdownButtonFormField<String>(value: method, decoration: _dialogInputDecoration('طريقة الدفع'), items: const [DropdownMenuItem(value: 'cash', child: Text('كاش (صندوق)')), DropdownMenuItem(value: 'bank', child: Text('بنك'))], onChanged: (v) => setState(() => method = v!)),
                   ],
 
-                  // حقول البنك
                   if (method == 'bank' && type != 'transfer') ...[
                     const SizedBox(height: 12),
-                    TextField(controller: bankNameCtrl, decoration: const InputDecoration(labelText: 'اسم البنك')),
+                    TextField(controller: bankNameCtrl, decoration: _dialogInputDecoration('اسم البنك')),
                     const SizedBox(height: 12),
-                    TextField(controller: accHolderCtrl, decoration: const InputDecoration(labelText: 'اسم صاحب الحساب')),
+                    TextField(controller: accHolderCtrl, decoration: _dialogInputDecoration('اسم صاحب الحساب')),
                     const SizedBox(height: 12),
-                    TextField(controller: refCtrl, decoration: const InputDecoration(labelText: 'رقم العملية / الإيصال')),
+                    TextField(controller: refCtrl, decoration: _dialogInputDecoration('رقم العملية / الإيصال')),
                   ],
                   
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: () {
                         final amount = double.tryParse(amountCtrl.text) ?? 0;
@@ -226,7 +278,12 @@ class TreasuryScreen extends StatelessWidget {
                           Navigator.pop(ctx);
                         }
                       },
-                      child: Text(existingTx != null ? 'حفظ التعديلات' : 'تأكيد العملية'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary(context),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(existingTx != null ? 'حفظ التعديلات' : 'تأكيد العملية', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -236,6 +293,15 @@ class TreasuryScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  InputDecoration _dialogInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
     );
   }
 }
