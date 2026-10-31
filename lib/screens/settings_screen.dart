@@ -102,13 +102,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ]),
-          _card('الأمان', [
+          _card('الأمان والنسخ الاحتياطي', [
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.lock_reset, color: AppColors.primary(context)),
               title: const Text('استعادة كلمة السر'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: _resetPassword,
+            ),
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.backup, color: AppColors.ok),
+              title: const Text('حفظ نسخة من البيانات'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () => context.read<AppProvider>().exportData(),
+            ),
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.restore, color: AppColors.partial),
+              title: const Text('استعادة نسخة احتياطية'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () async {
+                final success = await context.read<AppProvider>().importData();
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم استعادة البيانات بنجاح'), backgroundColor: AppColors.ok));
+                }
+              },
             ),
           ]),
           _card('نسب الأقساط', [
