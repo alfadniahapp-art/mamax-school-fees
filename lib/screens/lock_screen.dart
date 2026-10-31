@@ -40,11 +40,7 @@ class _LockScreenState extends State<LockScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('دخول المطور'),
-        content: TextField(
-          controller: adminPinCtrl,
-          obscureText: true,
-          decoration: const InputDecoration(labelText: 'كلمة سر المطور'),
-        ),
+        content: TextField(controller: adminPinCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'كلمة سر المطور')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           ElevatedButton(
@@ -69,11 +65,7 @@ class _LockScreenState extends State<LockScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('تعديل كلمة سر التطبيق'),
-        content: TextField(
-          controller: newPinCtrl,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'كلمة السر الجديدة'),
-        ),
+        content: TextField(controller: newPinCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'كلمة السر الجديدة')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           ElevatedButton(
@@ -95,44 +87,77 @@ class _LockScreenState extends State<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // الخلفية هنا بيضاء (لأننا فرضنا الوضع الفاتح)
     return Scaffold(
+      backgroundColor: Colors.white,
       body: GestureDetector(
         onTap: _handleSecretTap,
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(30),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // الشعار
                 Container(
                   padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(color: AppColors.primary(context).withOpacity(0.1), shape: BoxShape.circle),
-                  child: Icon(Icons.lock_outline, size: 64, color: AppColors.primary(context)),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary(context).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.lock_outline, size: 56, color: AppColors.primary(context)),
                 ),
-                const SizedBox(height: 24),
-                const Text('رسومك الدراسية', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                const Text('أدخل كلمة السر للدخول', style: TextStyle(color: Colors.grey, fontSize: 14)),
                 const SizedBox(height: 32),
-                TextField(
-                  controller: _pinCtrl,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 24, letterSpacing: 8),
-                  decoration: const InputDecoration(hintText: '••••'),
-                  onSubmitted: (_) => _submit(),
+                
+                // النصوص
+                const Text('رسومك الدراسية', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                const SizedBox(height: 8),
+                const Text('أدخل كلمة السر للدخول', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                const SizedBox(height: 40),
+                
+                // حقل كلمة السر
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TextField(
+                    controller: _pinCtrl,
+                    obscureText: true,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold, color: Colors.black87),
+                    decoration: const InputDecoration(
+                      hintText: '••••',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onSubmitted: (_) => _submit(),
+                  ),
                 ),
                 if (_error.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(_error, style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  Text(_error, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
+                
+                // زر الدخول
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(onPressed: _submit, child: const Text('دخول')),
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary(context),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 5,
+                    ),
+                    child: const Text('دخول', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 const Text('كلمة السر الافتراضية: 1234', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
