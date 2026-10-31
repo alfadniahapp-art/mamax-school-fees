@@ -20,7 +20,7 @@ class MamaxApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'دفتر رسوم الطلاب',
+      title: 'رسومك الدراسية',
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar'), Locale('en')],
