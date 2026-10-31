@@ -95,36 +95,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           _buildCard('المظهر والألوان', [
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('الوضع الليلي (Dark Mode)'),
-              secondary: Icon(themeProv.isDark ? Icons.dark_mode : Icons.light_mode, color: AppColors.primary(context)),
-              value: themeProv.isDark,
-              onChanged: (v) => themeProv.toggleTheme(),
-            ),
-            const Divider(),
-            const Text('اللون الأساسي للتطبيق', style: TextStyle(fontSize: 13, color: Colors.grey)),
-            const SizedBox(height: 12),
+            const Text('اللون الأساسي للتطبيق:', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _colorDot(const Color(0xFF0F766E), themeProv),
-                _colorDot(const Color(0xFF0B4A3D), themeProv),
-                _colorDot(const Color(0xFF2563EB), themeProv),
-                _colorDot(const Color(0xFF7C3AED), themeProv),
-                _colorDot(const Color(0xFF1F2937), themeProv),
+                _colorDot(const Color(0xFF0F766E), themeProv, 'primary'),
+                _colorDot(const Color(0xFF0B4A3D), themeProv, 'primary'),
+                _colorDot(const Color(0xFF2563EB), themeProv, 'primary'),
+                _colorDot(const Color(0xFF7C3AED), themeProv, 'primary'),
+                _colorDot(const Color(0xFF1F2937), themeProv, 'primary'),
               ],
             ),
-            const SizedBox(height: 20),
-            const Text('نمط الخلفية (ملكي):', style: TextStyle(fontSize: 13, color: Colors.grey)),
-            const SizedBox(height: 8),
+            const Divider(height: 30),
+            
+            // لون حدود البطاقات
+            const Text('لون حدود البطاقات:', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _bgStyleChip('فاتح', 'light', themeProv),
-                const SizedBox(width: 8),
-                _bgStyleChip('ملكي', 'royal', themeProv),
-                const SizedBox(width: 8),
-                _bgStyleChip('داكن', 'dark', themeProv),
+                _colorDot(const Color(0xFFE2E8F0), themeProv, 'border'),
+                _colorDot(const Color(0xFFD97706), themeProv, 'border'),
+                _colorDot(const Color(0xFF0F766E), themeProv, 'border'),
+                _colorDot(const Color(0xFF2563EB), themeProv, 'border'),
+                _pickColorBtn(context, themeProv, 'border'),
+              ],
+            ),
+            const Divider(height: 30),
+            
+            // خلفية البطاقات
+            const Text('خلفية البطاقات (لون خفيف جداً):', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _colorDot(Colors.white, themeProv, 'bg'),
+                _colorDot(const Color(0xFFE0F2F1), themeProv, 'bg'), // أخضر فاتح
+                _colorDot(const Color(0xFFE3F2FD), themeProv, 'bg'), // أزرق فاتح
+                _colorDot(const Color(0xFFF3E5F5), themeProv, 'bg'), // بنفسجي فاتح
+                _pickColorBtn(context, themeProv, 'bg'),
               ],
             ),
           ]),
@@ -178,21 +188,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _bgStyleChip(String label, String value, ThemeProvider themeProv) {
-    final isActive = themeProv.bgStyle == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => themeProv.changeBgStyle(value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.primary(context) : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Center(
-            child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+  Future<void> _pickColor(BuildContext context, ThemeProvider themeProv, String type) async {
+    final colors = [
+      Colors.red, Colors.pink, Colors.purple, Colors.deepPurple, 
+      Colors.indigo, Colors.blue, Colors.lightBlue, Colors.cyan, 
+      Colors.teal, Colors.green, Colors.lightGreen, Colors.lime,
+      Colors.yellow, Colors.amber, Colors.orange, Colors.deepOrange, 
+      Colors.brown, Colors.grey, Colors.blueGrey, Colors.black,
+    ];
+    
+    final selected = await showDialog<Color>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('اختر اللون'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: GridView.builder(
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, mainAxisSpacing: 10, crossAxisSpacing: 10),
+            itemCount: colors.length,
+            itemBuilder: (ctx, i) => GestureDetector(
+              onTap: () => Navigator.pop(ctx, colors[i]),
+              child: Container(decoration: BoxDecoration(color: colors[i], shape: BoxShape.circle)),
+            ),
           ),
         ),
+      ),
+    );
+    if (selected != null) {
+      if (type == 'border') {
+        themeProv.changeCardBorderColor(selected.withOpacity(0.6));
+      } else {
+        themeProv.changeCardBgColor(selected);
+      }
+    }
+  }
+
+  Widget _pickColorBtn(BuildContext context, ThemeProvider themeProv, String type) {
+    return GestureDetector(
+      onTap: () => _pickColor(context, themeProv, type),
+      child: Container(
+        width: 45, height: 45,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: const Icon(Icons.colorize, color: Colors.black54, size: 20),
       ),
     );
   }
@@ -207,17 +249,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _colorDot(Color color, ThemeProvider themeProv) {
-    final isSelected = themeProv.primaryColor == color;
+  Widget _colorDot(Color color, ThemeProvider themeProv, String type) {
+    Color currentColor;
+    bool isSelected;
+    
+    if (type == 'primary') {
+      currentColor = themeProv.primaryColor;
+      isSelected = currentColor == color;
+    } else if (type == 'border') {
+      currentColor = themeProv.cardBorderColor;
+      isSelected = currentColor.withOpacity(0.6) == color.withOpacity(0.6);
+    } else {
+      currentColor = themeProv.cardBgColor;
+      isSelected = currentColor == color;
+    }
+
     return GestureDetector(
-      onTap: () => themeProv.changePrimaryColor(color),
+      onTap: () {
+        if (type == 'primary') themeProv.changePrimaryColor(color);
+        else if (type == 'border') themeProv.changeCardBorderColor(color);
+        else themeProv.changeCardBgColor(color);
+      },
       child: Container(
-        width: 40, height: 40,
+        width: 45, height: 45,
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
-          boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 8)] : null,
+          border: Border.all(color: isSelected ? Colors.black87 : Colors.transparent, width: 2),
         ),
         child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
       ),
@@ -231,7 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
