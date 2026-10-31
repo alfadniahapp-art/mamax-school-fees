@@ -31,30 +31,23 @@ jobs:
 
       - name: 🏗️ Create Flutter Android Scaffold
         run: |
-          # إنشاء مشروع فلاتر مؤقت لتوليد مجلد android
           flutter create temp_app --project-name mamax_school_fees --platforms android
-          
-          # نسخ مجلد android إلى مشروعنا الأساسي
           cp -r temp_app/android ./
-          
-          # حذف المشروع المؤقت
           rm -rf temp_app
-          
-          # تعديل اسم التطبيق في AndroidManifest
           sed -i 's/android:label="mamax_school_fees"/android:label="رسومك الدراسية"/g' android/app/src/main/AndroidManifest.xml
-
-          # إضافة الصلاحيات
           sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
-
-          # تحديث إعدادات Android لتدعم المكتبات الجديدة (التعامل مع build.gradle وليس kts)
           sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
 
       - name: 📦 Install Dependencies
         run: flutter pub get
 
-      - name: 🔨 Build APK
-        run: flutter build apk --release
+      - name: 🔍 Analyze (لإظهار الأخطاء الحقيقية)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        continue-on-error: true
+
+      - name: 🔨 Build APK (مع سجلات تفصيلية)
+        run: flutter build apk --release --verbose
 
       - name: 📤 Upload APK
         uses: actions/upload-artifact@v4
