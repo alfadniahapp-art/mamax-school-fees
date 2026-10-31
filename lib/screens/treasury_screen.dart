@@ -49,11 +49,7 @@ class TreasuryScreen extends StatelessWidget {
   Widget _balanceCard(String label, double balance, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
       child: Column(
         children: [
           Icon(icon, color: color, size: 30),
@@ -68,19 +64,8 @@ class TreasuryScreen extends StatelessWidget {
   Widget _actionBtn(String label, IconData icon, Color color, VoidCallback onTap) {
     return ElevatedButton(
       onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 22),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12)),
-        ],
-      ),
+      style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+      child: Column(children: [Icon(icon, size: 22), const SizedBox(height: 4), Text(label, style: const TextStyle(fontSize: 12))]),
     );
   }
 
@@ -93,10 +78,7 @@ class TreasuryScreen extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.1),
-          child: Icon(isDeposit ? Icons.arrow_downward : isWithdraw ? Icons.arrow_upward : Icons.swap_horiz, color: color, size: 18),
-        ),
+        leading: CircleAvatar(backgroundColor: color.withOpacity(0.1), child: Icon(isDeposit ? Icons.arrow_downward : isWithdraw ? Icons.arrow_upward : Icons.swap_horiz, color: color, size: 18)),
         title: Text('$label - ${tx.entityName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         subtitle: Text('${dateStr(tx.date)} • ${tx.method == 'cash' ? 'كاش' : 'بنك'}'),
         trailing: Text(money(tx.amount), style: TextStyle(color: color, fontWeight: FontWeight.bold)),
@@ -105,8 +87,66 @@ class TreasuryScreen extends StatelessWidget {
   }
 
   void _showTransactionDialog(BuildContext context, String type) {
-    // هنا يمكنك إضافة نموذج منبثق (BottomSheet) لإدخال البيانات
-    // اختصاراً للوقت، سأتركه لك كتمرين، أو يمكنني إضافته في الخطوة القادمة.
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سيتم إضافة النموذج قريباً')));
+    final entityCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
+    String method = 'cash';
+    String fromAcc = 'cash';
+    String toAcc = 'bank';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(type == 'deposit' ? 'إيداع جديد' : type == 'withdraw' ? 'سحب جديد' : 'تحويل جديد', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                TextField(controller: entityCtrl, decoration: InputDecoration(labelText: type == 'deposit' ? 'اسم المودع' : 'جهة السحب'), keyboardType: TextInputType.text),
+                const SizedBox(height: 12),
+                TextField(controller: amountCtrl, decoration: const InputDecoration(labelText: 'المبلغ'), keyboardType: TextInputType.number),
+                const SizedBox(height: 12),
+                
+                if (type == 'transfer') ...[
+                  DropdownButtonFormField<String>(value: fromAcc, decoration: const InputDecoration(labelText: 'من حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => fromAcc = v!)),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(value: toAcc, decoration: const InputDecoration(labelText: 'إلى حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => toAcc = v!)),
+                ] else ...[
+                  DropdownButtonFormField<String>(value: method, decoration: const InputDecoration(labelText: 'طريقة الدفع'), items: const [DropdownMenuItem(value: 'cash', child: Text('كاش (صندوق)')), DropdownMenuItem(value: 'bank', child: Text('بنك'))], onChanged: (v) => setState(() => method = v!)),
+                ],
+                
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final amount = double.tryParse(amountCtrl.text) ?? 0;
+                      if (amount > 0 && entityCtrl.text.isNotEmpty) {
+                        context.read<AppProvider>().addTransaction(FinancialTransaction(
+                          id: context.read<AppProvider>().newId(),
+                          type: type,
+                          method: method,
+                          fromAccount: type == 'transfer' ? fromAcc : (type == 'withdraw' ? method : ''),
+                          toAccount: type == 'transfer' ? toAcc : (type == 'deposit' ? method : ''),
+                          entityName: entityCtrl.text.trim(),
+                          amount: amount,
+                          date: DateTime.now(),
+                        ));
+                        Navigator.pop(ctx);
+                      }
+                    },
+                    child: const Text('تأكيد العملية'),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }
