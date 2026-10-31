@@ -29,12 +29,22 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: 🏗️ Create Flutter Android Scaffold
+        run: |
+          # إنشاء مشروع فلاتر مؤقت لتوليد مجلد android
+          flutter create temp_app --project-name mamax_school_fees --platforms android
+          
+          # نسخ مجلد android إلى مشروعنا الأساسي
+          cp -r temp_app/android ./
+          
+          # حذف المشروع المؤقت
+          rm -rf temp_app
+          
+          # تعديل اسم التطبيق في AndroidManifest
+          sed -i 's/android:label="mamax_school_fees"/android:label="رسومك الدراسية"/g' android/app/src/main/AndroidManifest.xml
+
       - name: 📦 Install Dependencies
         run: flutter pub get
-
-      - name: 🔍 Analyze (اختياري - لا يوقف البناء إذا وجد تحذيرات)
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
-        continue-on-error: true
 
       - name: 🔨 Build APK
         run: flutter build apk --release
