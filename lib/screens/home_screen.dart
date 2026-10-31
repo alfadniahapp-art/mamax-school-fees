@@ -10,7 +10,7 @@ import 'lock_screen.dart';
 import 'class_management_screen.dart';
 import 'reports_screen.dart';
 import 'student_form_screen.dart';
-import 'treasury_screen.dart'; // استيراد شاشة الخزينة
+import 'treasury_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,33 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('لوحة التحكم', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         actions: [
-          // زر الخزينة
-          IconButton(
-            icon: const Icon(Icons.account_balance_wallet),
-            tooltip: 'الخزينة',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TreasuryScreen())),
-          ),
-          // زر التقارير
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            tooltip: 'التقارير',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
-          ),
-          // زر الإعدادات
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'الإعدادات',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
-          ),
-          // زر القفل
-          IconButton(
-            icon: const Icon(Icons.lock_outline),
-            tooltip: 'قفل',
-            onPressed: () {
-              app.lock();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LockScreen()));
-            },
-          ),
+          IconButton(icon: const Icon(Icons.account_balance_wallet), tooltip: 'الخزينة', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TreasuryScreen()))),
+          IconButton(icon: const Icon(Icons.bar_chart), tooltip: 'التقارير', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()))),
+          IconButton(icon: const Icon(Icons.settings), tooltip: 'الإعدادات', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+          IconButton(icon: const Icon(Icons.lock_outline), tooltip: 'قفل', onPressed: () {
+            app.lock();
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LockScreen()));
+          }),
         ],
       ),
       body: Column(
@@ -114,21 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: ElevatedButton(
           onPressed: onTap,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            elevation: 4,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 20),
-              const SizedBox(height: 4),
-              Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-            ],
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 4),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 20), const SizedBox(height: 4), Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.center)]),
         ),
       ),
     );
@@ -175,13 +142,26 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
         boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          _miniStat('الطلاب', '${app.students.length}', Icons.people),
-          _miniStat('المطلوب', money(app.totalRequired), Icons.assignment),
-          _miniStat('المدفوع', money(app.totalPaid), Icons.check_circle),
-          _miniStat('المتبقي', money(app.totalRemaining), Icons.warning),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _miniStat('الصندوق', money(app.cashBalance), Icons.money),
+              _miniStat('البنك', money(app.bankBalance), Icons.account_balance),
+              _miniStat('الإجمالي', money(app.cashBalance + app.bankBalance), Icons.account_balance_wallet),
+            ],
+          ),
+          const Divider(color: Colors.white24, height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _miniStat('الطلاب', '${app.students.length}', Icons.people),
+              _miniStat('المطلوب', money(app.totalRequired), Icons.assignment),
+              _miniStat('المدفوع', money(app.totalPaid), Icons.check_circle),
+              _miniStat('المتبقي', money(app.totalRemaining), Icons.warning),
+            ],
+          ),
         ],
       ),
     );
@@ -190,9 +170,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _miniStat(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white70, size: 22),
+        Icon(icon, color: Colors.white70, size: 20),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
         Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
       ],
     );
@@ -203,52 +183,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
       child: Column(
         children: [
-          TextField(
-            controller: _searchCtrl,
-            decoration: InputDecoration(
-              hintText: 'بحث بالاسم...',
-              prefixIcon: const Icon(Icons.search),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
+          TextField(controller: _searchCtrl, decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey.shade50, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)), onChanged: (_) => setState(() {})),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: DropdownButtonFormField<Stage?>(
-                  value: _stageFilter,
-                  decoration: const InputDecoration(labelText: 'المرحلة', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('الكل')),
-                    DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')),
-                    DropdownMenuItem(value: Stage.middle, child: Text('متوسط')),
-                    DropdownMenuItem(value: Stage.high, child: Text('ثانوي')),
-                  ],
-                  onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }),
-                ),
-              ),
+              Expanded(child: DropdownButtonFormField<Stage?>(value: _stageFilter, decoration: const InputDecoration(labelText: 'المرحلة', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)), items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')), DropdownMenuItem(value: Stage.middle, child: Text('متوسط')), DropdownMenuItem(value: Stage.high, child: Text('ثانوي'))], onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }))),
               const SizedBox(width: 8),
-              Expanded(
-                child: DropdownButtonFormField<int?>(
-                  value: _clsFilter,
-                  decoration: const InputDecoration(labelText: 'الصف', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('الكل')),
-                    ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
-                  ],
-                  onChanged: (v) => setState(() => _clsFilter = v),
-                ),
-              ),
+              Expanded(child: DropdownButtonFormField<int?>(value: _clsFilter, decoration: const InputDecoration(labelText: 'الصف', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)), items: [const DropdownMenuItem(value: null, child: Text('الكل')), ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i])))], onChanged: (v) => setState(() => _clsFilter = v))),
             ],
           ),
         ],
@@ -261,12 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
     return Container(
       margin: const EdgeInsets.only(bottom: 12, right: 16, left: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.withOpacity(0.2), width: 1),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))],
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: c.withOpacity(0.2), width: 1), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))]),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -278,11 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: c.withOpacity(0.15),
-                      child: Text(s.name.substring(0, 1), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 18)),
-                    ),
+                    CircleAvatar(radius: 22, backgroundColor: c.withOpacity(0.15), child: Text(s.name.substring(0, 1), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 18))),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -304,10 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade100, minHeight: 8),
-                ),
+                ClipRRect(borderRadius: BorderRadius.circular(6), child: LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade100, minHeight: 8)),
               ],
             ),
           ),
