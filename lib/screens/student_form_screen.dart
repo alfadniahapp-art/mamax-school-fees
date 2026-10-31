@@ -93,7 +93,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         title: Text(widget.student == null ? 'إضافة طالب جديد' : 'تعديل بيانات الطالب', style: const TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -110,7 +110,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
               children: [
                 TextFormField(
                   controller: _name,
-                  decoration: _inputDecoration('اسم الطالب بالكامل', prefixIcon: const Icon(Icons.badge)),
+                  decoration: _inputDecoration(context, 'اسم الطالب بالكامل', prefixIcon: const Icon(Icons.badge)),
                   validator: (v) => v!.isEmpty ? 'مطلوب' : null,
                 ),
                 const SizedBox(height: 16),
@@ -119,7 +119,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                     Expanded(
                       child: DropdownButtonFormField<Stage>(
                         value: _stage,
-                        decoration: _inputDecoration('المرحلة'),
+                        decoration: _inputDecoration(context, 'المرحلة'),
                         items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
                         onChanged: (v) { if (v != null) setState(() { _stage = v; if (_cls > stageCount(v)) _cls = 1; _loadFees(); }); },
                       ),
@@ -128,7 +128,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         value: _cls,
-                        decoration: _inputDecoration('الصف'),
+                        decoration: _inputDecoration(context, 'الصف'),
                         items: List.generate(stageCount(_stage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
                         onChanged: (v) { if (v != null) setState(() { _cls = v; _loadFees(); }); },
                       ),
@@ -138,7 +138,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<Gender>(
                   value: _gender,
-                  decoration: _inputDecoration('النوع'),
+                  decoration: _inputDecoration(context, 'النوع'),
                   items: const [
                     DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
                     DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
@@ -156,7 +156,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                 TextFormField(
                   controller: _feeBase,
                   keyboardType: TextInputType.number,
-                  decoration: _inputDecoration('الرسوم الأساسية'),
+                  decoration: _inputDecoration(context, 'الرسوم الأساسية'),
                   onChanged: (_) => setState(_recalcInstallments),
                 ),
                 const SizedBox(height: 16),
@@ -164,11 +164,11 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Expanded(child: TextFormField(controller: _inst1, keyboardType: TextInputType.number, decoration: _inputDecoration('القسط 1'))),
+                    Expanded(child: TextFormField(controller: _inst1, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'القسط 1'))),
                     const SizedBox(width: 10),
-                    Expanded(child: TextFormField(controller: _inst2, keyboardType: TextInputType.number, decoration: _inputDecoration('القسط 2'))),
+                    Expanded(child: TextFormField(controller: _inst2, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'القسط 2'))),
                     const SizedBox(width: 10),
-                    Expanded(child: TextFormField(controller: _inst3, keyboardType: TextInputType.number, decoration: _inputDecoration('القسط 3'))),
+                    Expanded(child: TextFormField(controller: _inst3, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'القسط 3'))),
                   ],
                 ),
               ],
@@ -197,13 +197,21 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String label, {Widget? prefixIcon}) {
+  // دالة مساعدة لتزيين حقول الإدخال بالحدود الملونة
+  InputDecoration _inputDecoration(BuildContext context, String label, {Widget? prefixIcon}) {
     return InputDecoration(
       labelText: label,
       prefixIcon: prefixIcon,
       filled: true,
-      fillColor: AppColors.surface(context), // حقل يأخذ لون البطاقة
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      fillColor: AppColors.surface(context),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // لون الحدود المختار
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.primary(context), width: 2),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
@@ -214,7 +222,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // حدود البطاقة
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
