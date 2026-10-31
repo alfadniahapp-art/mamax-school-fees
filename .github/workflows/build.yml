@@ -44,15 +44,6 @@ jobs:
           # تحديث إعدادات Android
           sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
-          
-          # نسخ الأيقونة (logo.png) إلى مجلد الأندرويد
-          if [ -f "logo.png" ]; then
-            cp logo.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          fi
 
       - name: 📦 Install Dependencies
         run: flutter pub get
