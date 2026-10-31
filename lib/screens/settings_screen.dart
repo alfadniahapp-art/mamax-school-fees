@@ -11,7 +11,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late TextEditingController _pctA, _pctB, _pctC, _warnDays;
+  late TextEditingController _pctA, _pctB, _pctC, _warnDays1, _warnDays2, _warnDays3;
   late TextEditingController _bankNameCtrl, _bankName, _bankAcc, _bankPhone;
   late TextEditingController _schoolNameCtrl, _accountantNameCtrl;
 
@@ -22,7 +22,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _pctA = TextEditingController(text: s.pctA.toStringAsFixed(0));
     _pctB = TextEditingController(text: s.pctB.toStringAsFixed(0));
     _pctC = TextEditingController(text: s.pctC.toStringAsFixed(0));
-    _warnDays = TextEditingController(text: '${s.warnDays}');
+    _warnDays1 = TextEditingController(text: '${s.warnDays1}');
+    _warnDays2 = TextEditingController(text: '${s.warnDays2}');
+    _warnDays3 = TextEditingController(text: '${s.warnDays3}');
     _bankNameCtrl = TextEditingController(text: s.bankName);
     _bankName = TextEditingController(text: s.bankAccountName);
     _bankAcc = TextEditingController(text: s.bankAccountNumber);
@@ -37,7 +39,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       pctA: double.tryParse(_pctA.text) ?? 50,
       pctB: double.tryParse(_pctB.text) ?? 25,
       pctC: double.tryParse(_pctC.text) ?? 25,
-      warnDays: int.tryParse(_warnDays.text) ?? 14,
+      warnDays1: int.tryParse(_warnDays1.text) ?? 14,
+      warnDays2: int.tryParse(_warnDays2.text) ?? 7,
+      warnDays3: int.tryParse(_warnDays3.text) ?? 1,
       bankName: _bankNameCtrl.text.trim(),
       bankAccountName: _bankName.text.trim(),
       bankAccountNumber: _bankAcc.text.trim(),
@@ -95,7 +99,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           _buildCard('المظهر والألوان', [
-            // اللون الأساسي
             const Text('اللون الأساسي للتطبيق:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -110,7 +113,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(height: 30),
             
-            // لون حدود البطاقات
             const Text('لون حدود البطاقات:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -125,7 +127,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(height: 30),
 
-            // لون حدود مربعات الإدخال
             const Text('لون حدود مربعات الإدخال:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -140,7 +141,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(height: 30),
 
-            // لون حدود أزرار الاختيار
             const Text('لون حدود أزرار الاختيار:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -168,7 +168,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           _buildCard('إعدادات التنبيهات', [
-            TextField(controller: _warnDays, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'التنبيه قبل الاستحقاق (أيام)')),
+            const Text('التنبيهات قبل الاستحقاق (أيام):', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: TextField(controller: _warnDays1, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'التنبيه الأول'))),
+                const SizedBox(width: 10),
+                Expanded(child: TextField(controller: _warnDays2, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'التنبيه الثاني'))),
+                const SizedBox(width: 10),
+                Expanded(child: TextField(controller: _warnDays3, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'التنبيه الثالث'))),
+              ],
+            ),
           ]),
 
           _buildCard('بيانات البنك', [
