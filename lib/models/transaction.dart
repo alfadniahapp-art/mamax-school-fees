@@ -1,43 +1,32 @@
 class FinancialTransaction {
-  String id;
-  String type; // deposit, withdraw, transfer
-  String method; // cash, bank
-  String fromAccount; // cash, bank (للتحويل والسحب)
-  String toAccount; // cash, bank (للتحويل)
-  String entityName; // اسم المودع أو جهة السحب
+  String id, type, method, fromAccount, toAccount, entityName;
   double amount;
   DateTime date;
+  
+  // حقول البنك الجديدة
+  String bankName;
+  String accountHolderName;
+  String referenceNumber;
 
   FinancialTransaction({
-    required this.id,
-    required this.type,
-    required this.method,
-    this.fromAccount = '',
-    this.toAccount = '',
-    required this.entityName,
-    required this.amount,
-    required this.date,
+    required this.id, required this.type, required this.method,
+    this.fromAccount = '', this.toAccount = '',
+    required this.entityName, required this.amount, required this.date,
+    this.bankName = '', this.accountHolderName = '', this.referenceNumber = '',
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'method': method,
-        'fromAccount': fromAccount,
-        'toAccount': toAccount,
-        'entityName': entityName,
-        'amount': amount,
-        'date': date.toIso8601String(),
+        'id': id, 'type': type, 'method': method,
+        'fromAccount': fromAccount, 'toAccount': toAccount,
+        'entityName': entityName, 'amount': amount, 'date': date.toIso8601String(),
+        'bankName': bankName, 'accountHolderName': accountHolderName, 'referenceNumber': referenceNumber,
       };
 
   factory FinancialTransaction.fromJson(Map<String, dynamic> j) => FinancialTransaction(
-        id: j['id'],
-        type: j['type'],
-        method: j['method'],
-        fromAccount: j['fromAccount'] ?? '',
-        toAccount: j['toAccount'] ?? '',
-        entityName: j['entityName'] ?? '',
-        amount: (j['amount'] ?? 0).toDouble(),
+        id: j['id'], type: j['type'], method: j['method'],
+        fromAccount: j['fromAccount'] ?? '', toAccount: j['toAccount'] ?? '',
+        entityName: j['entityName'] ?? '', amount: (j['amount'] ?? 0).toDouble(),
         date: DateTime.parse(j['date']),
+        bankName: j['bankName'] ?? '', accountHolderName: j['accountHolderName'] ?? '', referenceNumber: j['referenceNumber'] ?? '',
       );
 }
