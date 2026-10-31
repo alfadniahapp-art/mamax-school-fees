@@ -56,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeProv = context.watch<ThemeProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.bg(context), // لون الخلفية الملكي
       appBar: AppBar(
         title: const Text('الإعدادات', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -111,11 +111,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _colorDot(const Color(0xFF0F766E), themeProv), // زمردي
-                _colorDot(const Color(0xFF0B4A3D), themeProv), // أخضر داكن (الافتراضي الجديد)
-                _colorDot(const Color(0xFF2563EB), themeProv), // أزرق
-                _colorDot(const Color(0xFF7C3AED), themeProv), // بنفسجي
-                _colorDot(const Color(0xFF1F2937), themeProv), // أسود
+                _colorDot(const Color(0xFF0F766E), themeProv),
+                _colorDot(const Color(0xFF0B4A3D), themeProv),
+                _colorDot(const Color(0xFF2563EB), themeProv),
+                _colorDot(const Color(0xFF7C3AED), themeProv),
+                _colorDot(const Color(0xFF1F2937), themeProv),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // هذا هو الجزء الذي كان مفقوداً (نمط الخلفية)
+            const Text('نمط الخلفية (ملكي):', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _bgStyleChip('فاتح', 'light', themeProv),
+                const SizedBox(width: 8),
+                _bgStyleChip('ملكي', 'royal', themeProv),
+                const SizedBox(width: 8),
+                _bgStyleChip('داكن', 'dark', themeProv),
               ],
             ),
           ]),
@@ -173,11 +186,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // دالة إنشاء أزرار نمط الخلفية
+  Widget _bgStyleChip(String label, String value, ThemeProvider themeProv) {
+    final isActive = themeProv.bgStyle == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => themeProv.changeBgStyle(value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.primary(context) : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ),
+    );
+  }
+
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surface(context),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
@@ -205,8 +238,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white, 
-        borderRadius: BorderRadius.circular(20), 
+        color: AppColors.surface(context),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
