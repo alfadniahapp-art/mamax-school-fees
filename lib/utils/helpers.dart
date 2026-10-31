@@ -11,7 +11,7 @@ String dateStr(DateTime? d) => d == null ? '—' : _dateFmt.format(d);
 class ThemeProvider extends ChangeNotifier {
   bool _isDark = false;
   Color _primaryColor = const Color(0xFF0B4A3D); // أخضر ملكي داكن
-  String _bgStyle = 'royal'; // royal (ملكي فاتح), light (أبيض), dark (داكن)
+  String _bgStyle = 'light'; // القيمة الافتراضية فاتح
 
   bool get isDark => _isDark;
   Color get primaryColor => _primaryColor;
@@ -21,12 +21,10 @@ class ThemeProvider extends ChangeNotifier {
   void changePrimaryColor(Color color) { _primaryColor = color; notifyListeners(); }
   void changeBgStyle(String style) { _bgStyle = style; notifyListeners(); }
 
-  // اللون الخلفية: إذا اخترت داكن تصبح سوداء، وإلا تصبح فاتحة (أبيض أو ملكي)
   Color get derivedBackground {
     if (_bgStyle == 'dark') return const Color(0xFF121212);
-    if (_bgStyle == 'light') return const Color(0xFFF8FAFC);
-    // الوضع الملكي الافتراضي (لون الثيم بشفافية خفيفة جداً)
-    return _primaryColor.withOpacity(0.04);
+    if (_bgStyle == 'royal') return _primaryColor.withOpacity(0.04);
+    return const Color(0xFFF8FAFC); // فاتح
   }
 
   Color get derivedBorderColor => _primaryColor.withOpacity(0.2);
