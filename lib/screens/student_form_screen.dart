@@ -197,7 +197,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     );
   }
 
-  // دالة مساعدة لتزيين حقول الإدخال بالحدود الملونة
   InputDecoration _inputDecoration(BuildContext context, String label, {Widget? prefixIcon}) {
     return InputDecoration(
       labelText: label,
@@ -206,7 +205,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       fillColor: AppColors.surface(context),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // لون الحدود المختار
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // تم تطبيق لون الحدود
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -222,7 +221,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // حدود البطاقة
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
