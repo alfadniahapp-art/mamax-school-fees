@@ -15,10 +15,6 @@ dependencies:
   shared_preferences: ^2.2.2
   intl: ^0.18.1
   uuid: ^4.2.1
-  pdf: ^3.10.8
-  printing: ^5.11.1
-  file_picker: ^8.0.0+1
-  share_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +23,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - logo.png
