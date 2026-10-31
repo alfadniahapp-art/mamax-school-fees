@@ -8,8 +8,11 @@ import 'utils/helpers.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppProvider()..load(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppProvider()..load()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
       child: const MamaxApp(),
     ),
   );
@@ -20,6 +23,8 @@ class MamaxApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return MaterialApp(
       title: 'رسومك الدراسية',
       debugShowCheckedModeBanner: false,
@@ -30,33 +35,29 @@ class MamaxApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
+        fontFamily: 'Tajawal',
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
+          seedColor: themeProvider.primaryColor,
+          brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: AppColors.bg,
-        fontFamily: 'Tahoma',
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.primary,
+        appBarTheme: AppBarTheme(
+          backgroundColor: themeProvider.primaryColor,
           foregroundColor: Colors.white,
-          elevation: 0,
-          centerTitle: true,
         ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2),
-          ),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Tajawal',
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: themeProvider.primaryColor,
+          brightness: Brightness.dark,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: themeProvider.primaryColor,
+          foregroundColor: Colors.white,
         ),
       ),
       builder: (ctx, child) => Directionality(
