@@ -15,6 +15,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _name, _feeBase, _feeReg, _feeExam, _inst1, _inst2, _inst3;
   late Stage _stage;
+  late Gender _gender;
   late int _cls;
   bool _hasReg = false, _hasExam = false;
 
@@ -24,6 +25,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     final s = widget.student;
     _name = TextEditingController(text: s?.name ?? '');
     _stage = s?.stage ?? Stage.primary;
+    _gender = s?.gender ?? Gender.boys;
     _cls = s?.cls ?? 1;
     _hasReg = s?.hasReg ?? false;
     _hasExam = s?.hasExam ?? false;
@@ -73,7 +75,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     final app = context.read<AppProvider>();
     final data = Student(
       id: widget.student?.id ?? app.newId(),
-      name: _name.text.trim(), stage: _stage, cls: _cls,
+      name: _name.text.trim(), stage: _stage, cls: _cls, gender: _gender,
       hasReg: _hasReg, hasExam: _hasExam,
       feeBase: double.tryParse(_feeBase.text) ?? 0,
       feeReg: _hasReg ? (double.tryParse(_feeReg.text) ?? 0) : 0,
@@ -119,6 +121,16 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<Gender>(
+              value: _gender,
+              decoration: const InputDecoration(labelText: 'النوع'),
+              items: const [
+                DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
+                DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
+              ],
+              onChanged: (v) { if (v != null) setState(() => _gender = v); },
             ),
             const SizedBox(height: 20),
             TextFormField(controller: _feeBase, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الرسوم الأساسية'), onChanged: (_) => setState(_recalcInstallments)),
