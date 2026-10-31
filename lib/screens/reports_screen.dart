@@ -47,13 +47,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
           if (_reportType == 'students')
             pw.TableHelper.fromTextArray(
               cellAlignments: {
-                0: pw.Alignment.centerRight,
-                1: pw.Alignment.center,
-                2: pw.Alignment.center,
-                3: pw.Alignment.center,
-                4: pw.Alignment.center,
-                5: pw.Alignment.center,
-                6: pw.Alignment.center,
+                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.center,
+                3: pw.Alignment.center, 4: pw.Alignment.center, 5: pw.Alignment.center, 6: pw.Alignment.center,
               },
               headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
               data: data.map<List<String>>((dynamic s) {
@@ -66,11 +61,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
           else
             pw.TableHelper.fromTextArray(
               cellAlignments: {
-                0: pw.Alignment.centerRight,
-                1: pw.Alignment.center,
-                2: pw.Alignment.centerRight,
-                3: pw.Alignment.center,
-                4: pw.Alignment.center,
+                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.centerRight,
+                3: pw.Alignment.center, 4: pw.Alignment.center,
               },
               headers: ['التاريخ', 'النوع', 'الجهة', 'طريقة الدفع', 'المبلغ'],
               data: data.map<List<String>>((dynamic t) {
@@ -127,7 +119,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         title: const Text('التقارير والإحصائيات', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -166,164 +158,162 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
     );
   }
-
-  Widget _buildReportTypeSelector() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: AppColors.surface(context),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => setState(() => _reportType = 'students'),
-              icon: const Icon(Icons.people),
-              label: const Text('تقارير الطلاب'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _reportType == 'students' ? AppColors.primary(context) : AppColors.bg(context),
-                foregroundColor: _reportType == 'students' ? Colors.white : Colors.black87,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+Widget _buildReportTypeSelector() {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    color: AppColors.surface(context),
+    child: Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => setState(() => _reportType = 'students'),
+            icon: const Icon(Icons.people),
+            label: const Text('تقارير الطلاب'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _reportType == 'students' ? AppColors.primary(context) : AppColors.bg(context),
+              foregroundColor: _reportType == 'students' ? Colors.white : Colors.black87,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => setState(() => _reportType = 'treasury'),
-              icon: const Icon(Icons.account_balance_wallet),
-              label: const Text('تقارير الخزينة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : AppColors.bg(context),
-                foregroundColor: _reportType == 'treasury' ? Colors.white : Colors.black87,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => setState(() => _reportType = 'treasury'),
+            icon: const Icon(Icons.account_balance_wallet),
+            label: const Text('تقارير الخزينة'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : AppColors.bg(context),
+              foregroundColor: _reportType == 'treasury' ? Colors.white : Colors.black87,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStudentFilters() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: AppColors.surface(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('تصفية حسب النطاق:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _chip('الكل', 'all', true),
-              const SizedBox(width: 6),
-              _chip('مرحلة', 'stage', true),
-              const SizedBox(width: 6),
-              _chip('قسم', 'gender', true),
-              const SizedBox(width: 6),
-              _chip('فصل', 'class', true),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (_scope == 'stage' || _scope == 'class')
-            DropdownButtonFormField<Stage>(value: _selectedStage, decoration: _inputDecoration('المرحلة'), items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(), onChanged: (v) => setState(() => _selectedStage = v!)),
-          if (_scope == 'gender')
-            DropdownButtonFormField<Gender>(value: _selectedGender, decoration: _inputDecoration('القسم'), items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))], onChanged: (v) => setState(() => _selectedGender = v!)),
-          if (_scope == 'class')
-            DropdownButtonFormField<int>(value: _selectedClass, decoration: _inputDecoration('الصف'), items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))).toList(), onChanged: (v) => setState(() => _selectedClass = v!)),
-          const Divider(height: 24),
-          const Text('حالة السداد:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _chip('الكل', 'all_status', false),
-              const SizedBox(width: 6),
-              _chip('مكتمل', 'paid', false),
-              const SizedBox(width: 6),
-              _chip('جزئي', 'partial', false),
-              const SizedBox(width: 6),
-              _chip('لم يدفع', 'unpaid', false),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTreasuryFilters() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: AppColors.surface(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('تصفية حسب نوع العملية:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _chipTreasury('الكل', 'all'),
-              const SizedBox(width: 6),
-              _chipTreasury('إيداعات', 'deposit'),
-              const SizedBox(width: 6),
-              _chipTreasury('سحوبات', 'withdraw'),
-              const SizedBox(width: 6),
-              _chipTreasury('تحويلات', 'transfer'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      isDense: true,
-      filled: true,
-      fillColor: AppColors.bg(context),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-    );
-  }
-
-  Widget _chip(String label, String value, bool isScope) {
-    final isActive = isScope ? _scope == value : _paymentStatus == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() {
-          if (isScope) _scope = value;
-          else _paymentStatus = value == 'all_status' ? 'all' : value;
-        }),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : AppColors.bg(context), 
-            borderRadius: BorderRadius.circular(10)
-          ),
-          child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 
-  Widget _chipTreasury(String label, String value) {
-    final isActive = _treasuryType == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _treasuryType = value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.secondary : AppColors.bg(context), 
-            borderRadius: BorderRadius.circular(10)
-          ),
-          child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
+Widget _buildStudentFilters() {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    color: AppColors.surface(context),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('تصفية حسب النطاق:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _chip('الكل', 'all', true),
+            const SizedBox(width: 6),
+            _chip('مرحلة', 'stage', true),
+            const SizedBox(width: 6),
+            _chip('قسم', 'gender', true),
+            const SizedBox(width: 6),
+            _chip('فصل', 'class', true),
+          ],
         ),
-      ),
-    );
-  }
+        const SizedBox(height: 12),
+        if (_scope == 'stage' || _scope == 'class')
+          DropdownButtonFormField<Stage>(value: _selectedStage, decoration: _inputDecoration('المرحلة'), items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(), onChanged: (v) => setState(() => _selectedStage = v!)),
+        if (_scope == 'gender')
+          DropdownButtonFormField<Gender>(value: _selectedGender, decoration: _inputDecoration('القسم'), items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))], onChanged: (v) => setState(() => _selectedGender = v!)),
+        if (_scope == 'class')
+          DropdownButtonFormField<int>(value: _selectedClass, decoration: _inputDecoration('الصف'), items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))).toList(), onChanged: (v) => setState(() => _selectedClass = v!)),
+        const Divider(height: 24),
+        const Text('حالة السداد:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _chip('الكل', 'all_status', false),
+            const SizedBox(width: 6),
+            _chip('مكتمل', 'paid', false),
+            const SizedBox(width: 6),
+            _chip('جزئي', 'partial', false),
+            const SizedBox(width: 6),
+            _chip('لم يدفع', 'unpaid', false),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
+Widget _buildTreasuryFilters() {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    color: AppColors.surface(context),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('تصفية حسب نوع العملية:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _chipTreasury('الكل', 'all'),
+            const SizedBox(width: 6),
+            _chipTreasury('إيداعات', 'deposit'),
+            const SizedBox(width: 6),
+            _chipTreasury('سحوبات', 'withdraw'),
+            const SizedBox(width: 6),
+            _chipTreasury('تحويلات', 'transfer'),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+InputDecoration _inputDecoration(String label) {
+  return InputDecoration(
+    labelText: label,
+    isDense: true,
+    filled: true,
+    fillColor: AppColors.bg(context),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+  );
+}
+
+Widget _chip(String label, String value, bool isScope) {
+  final isActive = isScope ? _scope == value : _paymentStatus == value;
+  return Expanded(
+    child: GestureDetector(
+      onTap: () => setState(() {
+        if (isScope) _scope = value;
+        else _paymentStatus = value == 'all_status' ? 'all' : value;
+      }),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : AppColors.bg(context), 
+          borderRadius: BorderRadius.circular(10)
+        ),
+        child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
+      ),
+    ),
+  );
+}
+
+Widget _chipTreasury(String label, String value) {
+  final isActive = _treasuryType == value;
+  return Expanded(
+    child: GestureDetector(
+      onTap: () => setState(() => _treasuryType = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.secondary : AppColors.bg(context), 
+          borderRadius: BorderRadius.circular(10)
+        ),
+        child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
+      ),
+    ),
+  );
+}
   Widget _buildStudentSummary(List<Student> list) {
     final totalReq = list.fold(0.0, (s, e) => s + e.totalRequired);
     final totalPaid = list.fold(0.0, (s, e) => s + e.totalPaid);
@@ -344,7 +334,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // الحدود هنا
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
@@ -378,7 +368,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // الحدود هنا
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: SingleChildScrollView(
@@ -426,7 +416,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // الحدود هنا
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: SingleChildScrollView(
@@ -518,3 +508,10 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
     );
   }
 }
+
+
+
+
+
+
+  
