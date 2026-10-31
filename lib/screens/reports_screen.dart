@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'dart:typed_data';
 import '../models/student.dart';
 import '../models/transaction.dart';
 import '../providers/app_provider.dart';
@@ -15,21 +16,16 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  String _reportType = 'students'; // students, treasury
-  
-  // فلاتر الطلاب
+  String _reportType = 'students';
   String _scope = 'all';
   Stage _selectedStage = Stage.primary;
   Gender _selectedGender = Gender.boys;
   int _selectedClass = 1;
   String _paymentStatus = 'all';
-
-  // فلترة الخزينة
   String _treasuryType = 'all';
 
-  Future<void> _generatePdf(List<dynamic> data) async {
+  Future<Uint8List> _generatePdf(List<dynamic> data) async {
     final pdf = pw.Document();
-    // تحميل الخط العربي من الإنترنت (يحل مشكلة المربعات)
     final font = await PdfGoogleFonts.cairoRegular();
     final fontBold = await PdfGoogleFonts.cairoBold();
 
@@ -46,6 +42,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
           pw.SizedBox(height: 10),
           if (_reportType == 'students')
             pw.TableHelper.fromTextArray(
+              cellAlignments: {
+                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.center,
+                3: pw.Alignment.center, 4: pw.Alignment.center, 5: pw.Alignment.center, 6: pw.Alignment.center,
+              },
               headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
               data: data.map<List<String>>((dynamic s) {
                 final student = s as Student;
@@ -56,6 +56,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
             )
           else
             pw.TableHelper.fromTextArray(
+              cellAlignments: {
+                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.centerRight,
+                3: pw.Alignment.center, 4: pw.Alignment.center,
+              },
               headers: ['التاريخ', 'النوع', 'الجهة', 'طريقة الدفع', 'المبلغ'],
               data: data.map<List<String>>((dynamic t) {
                 final tx = t as FinancialTransaction;
@@ -72,10 +76,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
     );
 
-    // عرض المعاينة مع إمكانية التكبير والتصغير التلقائية
-    await Printing.layoutPdf(
-      onLayout: (format) => pdf.save(),
-      name: 'report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    return pdf.save();
+  }
+
+  void _showPreview(BuildContext context, List<dynamic> data) {
+    showDialog(
+      context: context,
+      builder: (ctx) => _PdfPreviewDialog(
+        data: data,
+        reportType: _reportType,
+        generatePdf: () => _generatePdf(data),
+      ),
     );
   }
 
@@ -110,8 +121,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
-            tooltip: 'طباعة PDF',
-            onPressed: reportData.isEmpty ? null : () => _generatePdf(reportData),
+            tooltip: 'معاينة وطباعة PDF',
+            onPressed: reportData.isEmpty ? null : () => _showPreview(context, reportData),
           ),
         ],
       ),
@@ -153,10 +164,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               onPressed: () => setState(() => _reportType = 'students'),
               icon: const Icon(Icons.people),
               label: const Text('تقارير الطلاب'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _reportType == 'students' ? AppColors.primary(context) : Colors.grey.shade200,
-                foregroundColor: _reportType == 'students' ? Colors.white : Colors.black87,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: _reportType == 'students' ? AppColors.primary(context) : Colors.grey.shade200, foregroundColor: _reportType == 'students' ? Colors.white : Colors.black87),
             ),
           ),
           const SizedBox(width: 12),
@@ -165,10 +173,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               onPressed: () => setState(() => _reportType = 'treasury'),
               icon: const Icon(Icons.account_balance_wallet),
               label: const Text('تقارير الخزينة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : Colors.grey.shade200,
-                foregroundColor: _reportType == 'treasury' ? Colors.white : Colors.black87,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : Colors.grey.shade200, foregroundColor: _reportType == 'treasury' ? Colors.white : Colors.black87),
             ),
           ),
         ],
@@ -394,6 +399,66 @@ class _ReportsScreenState extends State<ReportsScreen> {
           }).toList(),
         ),
       ),
+    );
+  }
+}
+
+// شاشة المعاينة المخصصة
+class _PdfPreviewDialog extends StatefulWidget {
+  final List<dynamic> data;
+  final String reportType;
+  final Future<Uint8List> Function() generatePdf;
+
+  const _PdfPreviewDialog({required this.data, required this.reportType, required this.generatePdf});
+
+  @override
+  State<_PdfPreviewDialog> createState() => _PdfPreviewDialogState();
+}
+
+class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
+  Uint8List? _pdfBytes;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPdf();
+  }
+
+  Future<void> _loadPdf() async {
+    final bytes = await widget.generatePdf();
+    setState(() {
+      _pdfBytes = bytes;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('معاينة التقرير'),
+        actions: [
+          if (_pdfBytes != null)
+            IconButton(
+              icon: const Icon(Icons.print),
+              onPressed: () => Printing.layoutPdf(onLayout: (format) async => _pdfBytes!),
+            ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _pdfBytes == null
+              ? const Center(child: Text('تعذر توليد الملف'))
+              : InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 5.0,
+                  child: PdfPreview(
+                    build: (format) => _pdfBytes!,
+                    allowSharing: false,
+                    allowPrinting: false,
+                  ),
+                ),
     );
   }
 }
