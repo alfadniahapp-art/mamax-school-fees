@@ -49,14 +49,9 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
   }
 
   void _saveClass() async {
-    final names = _studentsTextCtrl.text
-        .split('\n')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-
+    final names = _studentsTextCtrl.text.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     if (names.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أدخل أسماء الطلاب أولاً'), backgroundColor: AppColors.none));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('أدخل أسماء الطلاب أولاً'), backgroundColor: AppColors.none));
       return;
     }
 
@@ -83,7 +78,6 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
     }
 
     await app.addMultipleStudents(newStudents);
-    
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('✓ تم إضافة ${names.length} طالباً بنجاح'), backgroundColor: AppColors.ok));
       Navigator.pop(context);
@@ -103,7 +97,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('1. تحديد الفصل', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Text('1. تحديد الفصل', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary(context))),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -137,7 +131,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('2. رسوم الفصل وتوزيع الأقساط', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Text('2. رسوم الفصل وتوزيع الأقساط', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary(context))),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _baseFeeCtrl,
@@ -190,7 +184,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('3. أسماء الطلاب (اسم في كل سطر)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Text('3. أسماء الطلاب (اسم في كل سطر)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary(context))),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _studentsTextCtrl,
