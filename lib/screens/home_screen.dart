@@ -27,6 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
+    
+    // 1. الفلترة بناءً على الاختيارات
     var list = app.students.where((s) {
       if (_stageFilter != null && s.stage != _stageFilter) return false;
       if (_clsFilter != null && s.cls != _clsFilter) return false;
@@ -34,6 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_searchCtrl.text.isNotEmpty && !s.name.contains(_searchCtrl.text.trim())) return false;
       return true;
     }).toList();
+
+    // 2. حساب الإحصائيات بناءً على القائمة المفلترة فقط
+    final filteredRequired = list.fold(0.0, (sum, s) => sum + s.totalRequired);
+    final filteredPaid = list.fold(0.0, (sum, s) => sum + s.totalPaid);
+    final filteredRemaining = filteredRequired - filteredPaid;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -52,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          _buildTopStats(app),
+          _buildTopStats(app, list.length, filteredRequired, filteredPaid, filteredRemaining),
           Expanded(
             child: CustomScrollView(
               slivers: [
@@ -67,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 if (list.isEmpty)
-                  const SliverFillRemaining(child: Center(child: Text('لا يوجد طلاب مسجلون حالياً', style: TextStyle(color: Colors.grey)))),
+                  const SliverFillRemaining(child: Center(child: Text('لا يوجد طلاب مطابقون للبحث', style: TextStyle(color: Colors.grey)))),
               ],
             ),
           ),
@@ -133,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTopStats(AppProvider app) {
+  Widget _buildTopStats(AppProvider app, int count, double req, double paid, double rem) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -144,22 +151,24 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
+          // إحصائيات الخزينة (ثابتة)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _miniStat('الصندوق', money(app.cashBalance), Icons.money),
               _miniStat('البنك', money(app.bankBalance), Icons.account_balance),
-              _miniStat('الإجمالي', money(app.cashBalance + app.bankBalance), Icons.account_balance_wallet),
+              _miniStat('إجمالي الخزينة', money(app.cashBalance + app.bankBalance), Icons.account_balance_wallet),
             ],
           ),
           const Divider(color: Colors.white24, height: 24),
+          // إحصائيات الطلاب (تتغير حسب الفلتر)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _miniStat('الطلاب', '${app.students.length}', Icons.people),
-              _miniStat('المطلوب', money(app.totalRequired), Icons.assignment),
-              _miniStat('المدفوع', money(app.totalPaid), Icons.check_circle),
-              _miniStat('المتبقي', money(app.totalRemaining), Icons.warning),
+              _miniStat('الطلاب', '$count', Icons.people),
+              _miniStat('المطلوب', money(req), Icons.assignment),
+              _miniStat('المدفوع', money(paid), Icons.check_circle),
+              _miniStat('المتبقي', money(rem), Icons.warning),
             ],
           ),
         ],
@@ -190,9 +199,31 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: DropdownButtonFormField<Stage?>(value: _stageFilter, decoration: const InputDecoration(labelText: 'المرحلة', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)), items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')), DropdownMenuItem(value: Stage.middle, child: Text('متوسط')), DropdownMenuItem(value: Stage.high, child: Text('ثانوي'))], onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }))),
+              Expanded(
+                child: DropdownButtonFormField<Stage?>(
+                  value: _stageFilter,
+                  decoration: const InputDecoration(labelText: 'المرحلة', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+                  items: const [
+                    DropdownMenuItem(value: null, child: Text('الكل')),
+                    DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')),
+                    DropdownMenuItem(value: Stage.middle, child: Text('متوسط')),
+                    DropdownMenuItem(value: Stage.high, child: Text('ثانوي')),
+                  ],
+                  onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }),
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: DropdownButtonFormField<int?>(value: _clsFilter, decoration: const InputDecoration(labelText: 'الصف', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)), items: [const DropdownMenuItem(value: null, child: Text('الكل')), ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i])))], onChanged: (v) => setState(() => _clsFilter = v))),
+              Expanded(
+                child: DropdownButtonFormField<int?>(
+                  value: _clsFilter,
+                  decoration: const InputDecoration(labelText: 'الصف', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('الكل')),
+                    ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
+                  ],
+                  onChanged: (v) => setState(() => _clsFilter = v),
+                ),
+              ),
             ],
           ),
         ],
