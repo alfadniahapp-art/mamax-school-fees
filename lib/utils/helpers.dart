@@ -9,34 +9,48 @@ String money(num n) => _numFmt.format(n);
 String dateStr(DateTime? d) => d == null ? '—' : _dateFmt.format(d);
 
 class ThemeProvider extends ChangeNotifier {
-  Color _primaryColor = const Color(0xFF0B4A3D);
-  String _bgStyle = 'light';
-  bool _isDark = false; // تم إضافتها لمنع الخطأ في شاشة الإعدادات
+  Color _primaryColor = const Color(0xFF0B4A3D); 
+  Color _cardBorderColor = const Color(0xFF0B4A3D).withOpacity(0.25);
+  Color _cardBgColor = Colors.white; // لون خلفية البطاقة الافتراضي
 
   Color get primaryColor => _primaryColor;
-  String get bgStyle => _bgStyle;
-  bool get isDark => _isDark;
+  Color get cardBorderColor => _cardBorderColor;
+  Color get cardBgColor => _cardBgColor;
 
-  void changePrimaryColor(Color color) { _primaryColor = color; notifyListeners(); }
-  void changeBgStyle(String style) { _bgStyle = style; notifyListeners(); }
-  void toggleTheme() { _isDark = !_isDark; notifyListeners(); }
-
-  Color get derivedBackground {
-    if (_bgStyle == 'royal') return _primaryColor.withOpacity(0.05);
-    if (_bgStyle == 'dark') return const Color(0xFF121212);
-    return const Color(0xFFF8FAFC);
+  void changePrimaryColor(Color color) { 
+    _primaryColor = color; 
+    notifyListeners(); 
   }
 
-  Color get derivedBorderColor => _primaryColor.withOpacity(0.2);
+  void changeCardBorderColor(Color color) {
+    _cardBorderColor = color;
+    notifyListeners();
+  }
+
+  void changeCardBgColor(Color color) {
+    _cardBgColor = color;
+    notifyListeners();
+  }
 }
 
 class AppColors {
   static Color primary(BuildContext context) => Theme.of(context).colorScheme.primary;
   static Color bg(BuildContext context) => const Color(0xFFF8FAFC);
-  static Color surface(BuildContext context) => Colors.white;
-  static Color cardBorder(BuildContext context) => const Color(0xFFE2E8F0);
   
-  // تعريفها كدالة تقبل context (لإرضاء الكود القديم)
+  // خلفية البطاقة تأخذ اللون المختار، لكن بشفافية عالية لضمان بقاء النص مقروءاً
+  static Color surface(BuildContext context) {
+    final themeProv = Provider.of<ThemeProvider>(context, listen: false);
+    // إذا كان اللون أبيض نتركه أبيض، وإلا نطبق عليه شفافية 85% ليكون لوناً فاتحاً جداً
+    return themeProv.cardBgColor == Colors.white 
+        ? Colors.white 
+        : Color.alphaBlend(themeProv.cardBgColor.withOpacity(0.08), Colors.white);
+  }
+
+  static Color cardBorder(BuildContext context) {
+    final themeProv = Provider.of<ThemeProvider>(context, listen: false);
+    return themeProv.cardBorderColor;
+  }
+      
   static Color textDark(BuildContext context) => const Color(0xFF0F172A);
   static Color textMuted(BuildContext context) => const Color(0xFF64748B);
 
