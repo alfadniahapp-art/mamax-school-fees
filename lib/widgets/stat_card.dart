@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import '../utils/helpers.dart';
 
 class StatCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
   final Color color;
-  final double? progress; // 0.0 - 1.0 (اختياري)
-  final String? subtitle;
+  final double? progress;
 
   const StatCard({
     super.key,
@@ -15,24 +15,20 @@ class StatCard extends StatelessWidget {
     required this.icon,
     required this.color,
     this.progress,
-    this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(
-          right: BorderSide(color: color, width: 4),
-        ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -42,58 +38,49 @@ class StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 18, color: color),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.grey,
+                    fontSize: 12,
+                    color: AppColors.textMuted,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: color,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textDark,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           if (progress != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             ClipRRect(
-              borderRadius: BorderRadius.circular(3),
+              borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: progress,
-                minHeight: 5,
+                minHeight: 6,
                 backgroundColor: Colors.grey.shade200,
                 valueColor: AlwaysStoppedAnimation(color),
               ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              subtitle ?? '${((progress ?? 0) * 100).toStringAsFixed(0)}%',
-              style: TextStyle(
-                fontSize: 10.5,
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-          if (subtitle != null && progress == null) ...[
-            const SizedBox(height: 3),
-            Text(
-              subtitle!,
-              style: const TextStyle(fontSize: 10.5, color: Colors.grey),
             ),
           ],
         ],
@@ -116,9 +103,9 @@ class StatsGrid extends StatelessWidget {
           crossAxisCount: cols,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: isWide ? 2.2 : 2.0,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: isWide ? 2.5 : 1.8,
           children: cards,
         );
       },
