@@ -204,7 +204,6 @@ class AppProvider extends ChangeNotifier {
     return balance;
   }
 
-  // دالة تصدير البيانات مع اسم الملف الجديد
   Future<void> exportData() async {
     final data = jsonEncode({
       'students': students.map((e) => e.toJson()).toList(),
@@ -261,11 +260,24 @@ class AppProvider extends ChangeNotifier {
     final required = s.amountFor(t);
     final paid = s.paidFor(t);
     if (paid >= required) return;
+
     final now = DateTime.now();
-    final days = DateTime(due.year, due.month, due.day).difference(DateTime(now.year, now.month, now.day)).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(due.year, due.month, due.day);
+    final days = target.difference(today).inDays;
+
+    final warnDaysList = [settings.warnDays1, settings.warnDays2, settings.warnDays3];
+    bool shouldAlert = false;
+    for (var warnDay in warnDaysList) {
+      if (days <= warnDay && days >= 0) {
+        shouldAlert = true;
+        break;
+      }
+    }
+
     if (days < 0) {
       out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': true, 'due': due});
-    } else if (days <= settings.warnDays) {
+    } else if (shouldAlert) {
       out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': false, 'due': due});
     }
   }
