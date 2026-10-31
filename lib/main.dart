@@ -11,7 +11,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()..load()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()), // هذا السطر يقوم بتحميل الألوان المحفوظة
       ],
       child: const MamaxApp(),
     ),
@@ -25,6 +25,9 @@ class MamaxApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
+    // التطبيق يعتمد على إعداداته الداخلية فقط
+    ThemeMode currentThemeMode = ThemeMode.light; 
+
     return MaterialApp(
       title: 'رسومك الدراسية',
       debugShowCheckedModeBanner: false,
@@ -35,7 +38,7 @@ class MamaxApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      themeMode: ThemeMode.light, // إجبار الوضع الفاتح دائماً
+      themeMode: currentThemeMode,
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Tahoma',
@@ -44,7 +47,7 @@ class MamaxApp extends StatelessWidget {
           brightness: Brightness.light,
           surface: Colors.white,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        scaffoldBackgroundColor: themeProvider.derivedBackground, // سيعود للون الفاتح
         appBarTheme: AppBarTheme(
           backgroundColor: themeProvider.primaryColor,
           foregroundColor: Colors.white,
