@@ -8,26 +8,29 @@ import 'package:file_picker/file_picker.dart';
 import '../models/student.dart';
 import '../models/payment.dart';
 import '../models/settings.dart';
+import '../models/transaction.dart'; // استيراد نموذج العمليات
 
 class AppProvider extends ChangeNotifier {
   List<Student> students = [];
+  List<FinancialTransaction> transactions = []; // قائمة العمليات المالية
   AppSettings settings = AppSettings();
   bool isLoading = true;
   bool isUnlocked = false;
   
   String _pinCode = '1234';
-  bool get isPinSet => _pinCode.isNotEmpty;
 
   final _uuid = const Uuid();
   static const _kStudents = 'students_v1';
   static const _kSettings = 'settings_v1';
   static const _kPin = 'app_pin_v1';
+  static const _kTransactions = 'transactions_v1';
 
   Future<void> load() async {
     isLoading = true;
     final prefs = await SharedPreferences.getInstance();
     _pinCode = prefs.getString(_kPin) ?? '1234';
 
+    // تحميل الطلاب
     final s = prefs.getString(_kStudents);
     if (s != null) {
       try {
@@ -36,12 +39,23 @@ class AppProvider extends ChangeNotifier {
       } catch (e) { debugPrint('Error: $e'); }
     }
 
+    // تحميل العمليات المالية
+    final tx = prefs.getString(_kTransactions);
+    if (tx != null) {
+      try {
+        final list = jsonDecode(tx) as List;
+        transactions = list.map((e) => FinancialTransaction.fromJson(e)).toList();
+      } catch (e) { debugPrint('Error: $e'); }
+    }
+
+    // تحميل الإعدادات
     final st = prefs.getString(_kSettings);
     if (st != null) {
       try {
         settings = AppSettings.fromJson(jsonDecode(st));
       } catch (e) { debugPrint('Error: $e'); }
     }
+    
     isLoading = false;
     notifyListeners();
   }
@@ -50,6 +64,7 @@ class AppProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kStudents, jsonEncode(students.map((e) => e.toJson()).toList()));
     await prefs.setString(_kSettings, jsonEncode(settings.toJson()));
+    await prefs.setString(_kTransactions, jsonEncode(transactions.map((e) => e.toJson()).toList()));
     notifyListeners();
   }
 
@@ -65,18 +80,62 @@ class AppProvider extends ChangeNotifier {
   void lock() { isUnlocked = false; notifyListeners(); }
   String newId() => _uuid.v4();
 
+  // --- الطلاب ---
   Future<void> addStudent(Student s) async { students.add(s); await _save(); }
   Future<void> addMultipleStudents(List<Student> newStudents) async { students.addAll(newStudents); await _save(); }
   Future<void> updateStudent(Student s) async { final i = students.indexWhere((e) => e.id == s.id); if (i > -1) students[i] = s; await _save(); }
   Future<void> deleteStudent(String id) async { students.removeWhere((e) => e.id == id); await _save(); }
   Student? getStudentById(String id) { try { return students.firstWhere((e) => e.id == id); } catch (_) { return null; } }
+
+  // --- الدفعات ---
   Future<void> addPayment(String studentId, Payment p) async { final s = students.firstWhere((e) => e.id == studentId); s.payments.add(p); await _save(); }
   Future<void> removePayment(String studentId, String paymentId) async { final s = students.firstWhere((e) => e.id == studentId); s.payments.removeWhere((p) => p.id == paymentId); await _save(); }
+  
+  // --- العمليات المالية (الصندوق والبنك) ---
+  Future<void> addTransaction(FinancialTransaction tx) async {
+    transactions.add(tx);
+    await _save();
+  }
+
+  // حساب رصيد الصندوق (كاش)
+  double get cashBalance {
+    double balance = 0;
+    for (var tx in transactions) {
+      if (tx.method == 'cash') {
+        if (tx.type == 'deposit') balance += tx.amount;
+        if (tx.type == 'withdraw') balance -= tx.amount;
+        if (tx.type == 'transfer') {
+          if (tx.toAccount == 'cash') balance += tx.amount;
+          if (tx.fromAccount == 'cash') balance -= tx.amount;
+        }
+      }
+    }
+    return balance;
+  }
+
+  // حساب رصيد البنك
+  double get bankBalance {
+    double balance = 0;
+    for (var tx in transactions) {
+      if (tx.method == 'bank') {
+        if (tx.type == 'deposit') balance += tx.amount;
+        if (tx.type == 'withdraw') balance -= tx.amount;
+        if (tx.type == 'transfer') {
+          if (tx.toAccount == 'bank') balance += tx.amount;
+          if (tx.fromAccount == 'bank') balance -= tx.amount;
+        }
+      }
+    }
+    return balance;
+  }
+
   Future<void> saveSettings(AppSettings s) async { settings = s; await _save(); }
 
+  // النسخ الاحتياطي
   Future<void> exportData() async {
     final data = jsonEncode({
       'students': students.map((e) => e.toJson()).toList(),
+      'transactions': transactions.map((e) => e.toJson()).toList(),
       'settings': settings.toJson(),
       'pin': _pinCode,
     });
@@ -95,6 +154,9 @@ class AppProvider extends ChangeNotifier {
         if (data['students'] != null) {
           students = (data['students'] as List).map((e) => Student.fromJson(e)).toList();
         }
+        if (data['transactions'] != null) {
+          transactions = (data['transactions'] as List).map((e) => FinancialTransaction.fromJson(e)).toList();
+        }
         if (data['settings'] != null) {
           settings = AppSettings.fromJson(data['settings']);
         }
@@ -111,6 +173,7 @@ class AppProvider extends ChangeNotifier {
     return false;
   }
 
+  // إحصائيات
   double get totalRequired => students.fold(0.0, (s, e) => s + e.totalRequired);
   double get totalPaid => students.fold(0.0, (s, e) => s + e.totalPaid);
   double get totalRemaining => totalRequired - totalPaid;
