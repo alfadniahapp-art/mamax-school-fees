@@ -85,21 +85,43 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // 1. تحديد الفصل
           _buildCard(
             title: '1. تحديد الفصل والنوع',
             icon: Icons.group,
             children: [
               Row(children: [
-                Expanded(child: DropdownButtonFormField<Stage>(value: _selectedStage, decoration: const InputDecoration(labelText: 'المرحلة', filled: true, fillColor: Colors.white), items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(), onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; }))),
+                Expanded(
+                  child: DropdownButtonFormField<Stage>(
+                    value: _selectedStage,
+                    decoration: const InputDecoration(labelText: 'المرحلة', filled: true, fillColor: Colors.white),
+                    items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
+                    onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; }),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: DropdownButtonFormField<int>(value: _selectedClass, decoration: const InputDecoration(labelText: 'الصف', filled: true, fillColor: Colors.white), items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))), onChanged: (v) => setState(() => _selectedClass = v!))),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    value: _selectedClass,
+                    decoration: const InputDecoration(labelText: 'الصف', filled: true, fillColor: Colors.white),
+                    items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
+                    onChanged: (v) => setState(() => _selectedClass = v!),
+                  ),
+                ),
               ]),
               const SizedBox(height: 12),
-              DropdownButtonFormField<Gender>(value: _selectedGender, decoration: const InputDecoration(labelText: 'النوع', filled: true, fillColor: Colors.white), items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))], onChanged: (v) => setState(() => _selectedGender = v!)),
+              DropdownButtonFormField<Gender>(
+                value: _selectedGender,
+                decoration: const InputDecoration(labelText: 'النوع', filled: true, fillColor: Colors.white),
+                items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))],
+                onChanged: (v) => setState(() => _selectedGender = v!),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-                    _buildCard(
+          
+          // 2. الرسوم
+          _buildCard(
             title: '2. رسوم الفصل وتوزيع الأقساط',
             icon: Icons.payments,
             children: [
@@ -121,14 +143,27 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          
+          // 3. الأسماء
           _buildCard(
             title: '3. أسماء الطلاب (اسم في كل سطر)',
             icon: Icons.list_alt,
             children: [
-              TextField(controller: _studentsTextCtrl, maxLines: 6, decoration: const InputDecoration(hintText: 'محمد أحمد\nعلي خديوي\nعمر ياسر\n...', filled: true, fillColor: Colors.white, helperText: 'أدخل اسم كل طالب في سطر منفصل')),
+              TextField(
+                controller: _studentsTextCtrl,
+                maxLines: 6,
+                decoration: const InputDecoration(
+                  hintText: 'محمد أحمد\nعلي خديوي\nعمر ياسر\n...',
+                  filled: true,
+                  fillColor: Colors.white,
+                  helperText: 'أدخل اسم كل طالب في سطر منفصل',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
+          
+          // زر الحفظ
           SizedBox(
             height: 55,
             child: ElevatedButton.icon(
@@ -138,6 +173,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary(context), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );
