@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(child: _buildFilters()),
+                SliverToBoxAdapter(child: _buildFilters(context)),
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Divider(),
                   
                   TextField(
-                    decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: AppColors.bg(context), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)),
+                    decoration: _inputDecoration(context, '', prefixIcon: Icons.search, hintText: 'بحث بالاسم...'),
                     onChanged: (v) => setModalState(() => _quickSearch = v.trim()),
                   ),
                   const SizedBox(height: 12),
@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: DropdownButtonFormField<Stage?>(
                           value: _quickStage,
-                          decoration: InputDecoration(labelText: 'المرحلة', isDense: true, filled: true, fillColor: AppColors.bg(context), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                          decoration: _inputDecoration(context, 'المرحلة'),
                           items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')), DropdownMenuItem(value: Stage.middle, child: Text('متوسط')), DropdownMenuItem(value: Stage.high, child: Text('ثانوي'))],
                           onChanged: (v) => setModalState(() { _quickStage = v; _quickCls = null; }),
                         ),
@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: DropdownButtonFormField<int?>(
                           value: _quickCls,
-                          decoration: InputDecoration(labelText: 'الصف', isDense: true, filled: true, fillColor: AppColors.bg(context), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                          decoration: _inputDecoration(context, 'الصف'),
                           items: [const DropdownMenuItem(value: null, child: Text('الكل')), ...List.generate(_quickStage != null ? stageCount(_quickStage!) : 6, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i])))],
                           onChanged: (v) => setModalState(() => _quickCls = v),
                         ),
@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<Gender?>(
                     value: _quickGender,
-                    decoration: InputDecoration(labelText: 'القسم', isDense: true, filled: true, fillColor: AppColors.bg(context), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                    decoration: _inputDecoration(context, 'القسم'),
                     items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))],
                     onChanged: (v) => setModalState(() => _quickGender = v),
                   ),
@@ -204,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: BoxDecoration(
                                 color: AppColors.surface(context),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // تم تعديل الحدود هنا أيضاً
+                                border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
                               ),
                               child: ListTile(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -274,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(BuildContext context) {
     int maxClasses = _stageFilter != null ? stageCount(_stageFilter!) : 6;
     return Container(
       margin: const EdgeInsets.all(16),
@@ -282,14 +282,14 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // الحدود هنا
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), 
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
         children: [
           TextField(
             controller: _searchCtrl, 
-            decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: AppColors.bg(context), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)), 
+            decoration: _inputDecoration(context, '', prefixIcon: Icons.search, hintText: 'بحث بالاسم...'), 
             onChanged: (_) => setState(() {})
           ),
           const SizedBox(height: 16),
@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: DropdownButtonFormField<Stage?>(
                   value: _stageFilter,
-                  decoration: InputDecoration(labelText: 'المرحلة', isDense: true, filled: true, fillColor: AppColors.bg(context), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                  decoration: _inputDecoration(context, 'المرحلة'),
                   items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')), DropdownMenuItem(value: Stage.middle, child: Text('متوسط')), DropdownMenuItem(value: Stage.high, child: Text('ثانوي'))],
                   onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }),
                 ),
@@ -307,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: DropdownButtonFormField<int?>(
                   value: _clsFilter,
-                  decoration: InputDecoration(labelText: 'الصف', isDense: true, filled: true, fillColor: AppColors.bg(context), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                  decoration: _inputDecoration(context, 'الصف'),
                   items: [const DropdownMenuItem(value: null, child: Text('الكل')), ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i])))],
                   onChanged: (v) => setState(() => _clsFilter = v),
                 ),
@@ -319,6 +319,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  InputDecoration _inputDecoration(BuildContext context, String label, {IconData? prefixIcon, String? hintText}) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hintText,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+      filled: true,
+      fillColor: AppColors.surface(context),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // الحدود الملونة
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.primary(context), width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   Widget _buildStudentCard(Student s) {
     final pct = s.paidPct;
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
@@ -327,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), // الحدود هنا
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5), 
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))]
       ),
       child: Material(
