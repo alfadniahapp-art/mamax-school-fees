@@ -9,22 +9,18 @@ String money(num n) => _numFmt.format(n);
 String dateStr(DateTime? d) => d == null ? '—' : _dateFmt.format(d);
 
 class ThemeProvider extends ChangeNotifier {
-  bool _isDark = false;
-  Color _primaryColor = const Color(0xFF0B4A3D); // أخضر ملكي داكن
-  String _bgStyle = 'light'; // القيمة الافتراضية فاتح
+  Color _primaryColor = const Color(0xFF0B4A3D); // أخضر ملكي
+  String _bgStyle = 'light'; // فاتح افتراضياً
 
-  bool get isDark => _isDark;
   Color get primaryColor => _primaryColor;
   String get bgStyle => _bgStyle;
 
-  void toggleTheme() { _isDark = !_isDark; notifyListeners(); }
   void changePrimaryColor(Color color) { _primaryColor = color; notifyListeners(); }
   void changeBgStyle(String style) { _bgStyle = style; notifyListeners(); }
 
   Color get derivedBackground {
-    if (_bgStyle == 'dark') return const Color(0xFF121212);
-    if (_bgStyle == 'royal') return _primaryColor.withOpacity(0.04);
-    return const Color(0xFFF8FAFC); // فاتح
+    if (_bgStyle == 'royal') return _primaryColor.withOpacity(0.05);
+    return const Color(0xFFF8FAFC); // أبيض فاتح
   }
 
   Color get derivedBorderColor => _primaryColor.withOpacity(0.2);
@@ -32,25 +28,12 @@ class ThemeProvider extends ChangeNotifier {
 
 class AppColors {
   static Color primary(BuildContext context) => Theme.of(context).colorScheme.primary;
+  static Color bg(BuildContext context) => const Color(0xFFF8FAFC); // إجبار الخلفية البيضاء
+  static Color surface(BuildContext context) => Colors.white; // إجبار البطاقات البيضاء
+  static Color cardBorder(BuildContext context) => const Color(0xFFE2E8F0); // حدود فاتحة
   
-  static Color bg(BuildContext context) {
-    final themeProv = Provider.of<ThemeProvider>(context);
-    return themeProv.derivedBackground;
-  }
-  
-  static Color surface(BuildContext context) => 
-      Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white;
-
-  static Color cardBorder(BuildContext context) {
-    final themeProv = Provider.of<ThemeProvider>(context);
-    return themeProv.derivedBorderColor;
-  }
-      
-  static Color textDark(BuildContext context) => 
-      Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A);
-      
-  static Color textMuted(BuildContext context) => 
-      Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade400 : const Color(0xFF64748B);
+  static const textDark = Color(0xFF0F172A);
+  static const textMuted = Color(0xFF64748B);
 
   static const secondary = Color(0xFFD97706);
   static const ok = Color(0xFF10B981);
