@@ -10,6 +10,7 @@ class TreasuryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
+    final total = app.cashBalance + app.bankBalance;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -17,14 +18,40 @@ class TreasuryScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // بطاقة الإجمالي
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary(context), AppColors.primary(context).withOpacity(0.7)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+            ),
+            child: Column(
+              children: [
+                const Text('إجمالي الخزينة (الصندوق + البنك)', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                const SizedBox(height: 8),
+                Text(money(total), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // بطاقات الصندوق والبنك
           Row(
             children: [
-              Expanded(child: _balanceCard('الصندوق (كاش)', app.cashBalance, Icons.money, Colors.green)),
+              Expanded(child: _balanceCard(context, 'الصندوق (كاش)', app.cashBalance, Icons.money, Colors.green)),
               const SizedBox(width: 12),
-              Expanded(child: _balanceCard('البنك', app.bankBalance, Icons.account_balance, Colors.blue)),
+              Expanded(child: _balanceCard(context, 'البنك', app.bankBalance, Icons.account_balance, Colors.blue)),
             ],
           ),
           const SizedBox(height: 20),
+          
+          // أزرار العمليات
           Row(
             children: [
               Expanded(child: _actionBtn('إيداع', Icons.add_circle, Colors.green, () => _showTransactionDialog(context, 'deposit'))),
@@ -35,6 +62,8 @@ class TreasuryScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
+          
+          // سجل العمليات
           const Text('سجل العمليات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 10),
           if (app.transactions.isEmpty)
@@ -46,7 +75,7 @@ class TreasuryScreen extends StatelessWidget {
     );
   }
 
-  Widget _balanceCard(String label, double balance, IconData icon, Color color) {
+  Widget _balanceCard(BuildContext context, String label, double balance, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
