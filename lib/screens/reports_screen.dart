@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../models/student.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
@@ -11,29 +14,54 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  // فلاتر النطاق
-  String _scope = 'all'; // all, stage, gender, class
+  String _scope = 'all';
   Stage _selectedStage = Stage.primary;
   Gender _selectedGender = Gender.boys;
   int _selectedClass = 1;
+  String _paymentStatus = 'all';
 
-  // فلتر حالة السداد
-  String _paymentStatus = 'all'; // all, paid, partial, unpaid
+  void _generatePdf(List<Student> list) async {
+    final pdf = pw.Document();
+    final font = await PdfGoogleFonts.cairoRegular();
+    final fontBold = await PdfGoogleFonts.cairoBold();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        textDirection: pw.TextDirection.rtl,
+        theme: pw.ThemeData.withFont(base: font, bold: fontBold),
+        build: (ctx) => [
+          pw.Header(
+            level: 0,
+            child: pw.Text('تقرير رسوم الطلاب', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+          ),
+          pw.SizedBox(height: 10),
+          pw.TableHelper.fromTextArray(
+            headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
+            data: list.map((s) {
+              final pct = s.paidPct;
+              final status = pct >= 1 ? 'مكتمل' : pct > 0 ? 'جزئي' : 'لم يدفع';
+              return [s.name, classNames[s.cls - 1], genderName(s.gender), money(s.totalRequired), money(s.totalPaid), money(s.remaining), status];
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (format) => pdf.save(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
-    
-    // 1. الفلترة حسب النطاق (مرحلة، قسم، فصل)
     var list = app.students.where((s) {
       if (_scope == 'stage') return s.stage == _selectedStage;
       if (_scope == 'gender') return s.gender == _selectedGender;
       if (_scope == 'class') return s.stage == _selectedStage && s.cls == _selectedClass;
       return true;
-    }).toList();
-
-    // 2. الفلترة حسب حالة السداد (مكتمل، جزئي، لم يدفع)
-    list = list.where((s) {
+    }).where((s) {
       if (_paymentStatus == 'paid') return s.paidPct >= 1.0;
       if (_paymentStatus == 'partial') return s.paidPct > 0 && s.paidPct < 1.0;
       if (_paymentStatus == 'unpaid') return s.paidPct == 0;
@@ -44,7 +72,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
         title: const Text('التقارير والإحصائيات'),
-        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'طباعة PDF',
+            onPressed: () => _generatePdf(list),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -71,40 +105,36 @@ class _ReportsScreenState extends State<ReportsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // فلاتر النطاق
           const Text('تصفية حسب النطاق:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _chip('كل الطلاب', 'all'),
-                const SizedBox(width: 8),
-                _chip('مرحلة معينة', 'stage'),
-                const SizedBox(width: 8),
-                _chip('قسم (بنين/بنات)', 'gender'),
-                const SizedBox(width: 8),
-                _chip('فصل معين', 'class'),
-              ],
-            ),
+          Row(
+            children: [
+              _chip('الكل', 'all', true),
+              const SizedBox(width: 4),
+              _chip('مرحلة', 'stage', true),
+              const SizedBox(width: 4),
+              _chip('قسم', 'gender', true),
+              const SizedBox(width: 4),
+              _chip('فصل', 'class', true),
+            ],
           ),
           const SizedBox(height: 12),
           if (_scope == 'stage' || _scope == 'class')
             DropdownButtonFormField<Stage>(
               value: _selectedStage,
-              decoration: const InputDecoration(labelText: 'اختر المرحلة', isDense: true),
+              decoration: const InputDecoration(labelText: 'المرحلة', isDense: true),
               items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
               onChanged: (v) => setState(() => _selectedStage = v!),
             ),
           if (_scope == 'gender')
             DropdownButtonFormField<Gender>(
               value: _selectedGender,
-              decoration: const InputDecoration(labelText: 'اختر القسم', isDense: true),
+              decoration: const InputDecoration(labelText: 'القسم', isDense: true),
               items: const [
                 DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
                 DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
@@ -114,50 +144,51 @@ class _ReportsScreenState extends State<ReportsScreen> {
           if (_scope == 'class')
             DropdownButtonFormField<int>(
               value: _selectedClass,
-              decoration: const InputDecoration(labelText: 'اختر الصف', isDense: true),
+              decoration: const InputDecoration(labelText: 'الصف', isDense: true),
               items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))).toList(),
               onChanged: (v) => setState(() => _selectedClass = v!),
             ),
-            
           const Divider(height: 24),
-          
-          // فلتر حالة السداد
-          const Text('تصفية حسب حالة السداد:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+          const Text('حالة السداد:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _chip('الكل', 'all_status', isStatus: true),
-                const SizedBox(width: 8),
-                _chip('دفعوا كاملاً', 'paid', isStatus: true),
-                const SizedBox(width: 8),
-                _chip('سداد جزئي', 'partial', isStatus: true),
-                const SizedBox(width: 8),
-                _chip('لم يدفعوا', 'unpaid', isStatus: true),
-              ],
-            ),
+          Row(
+            children: [
+              _chip('الكل', 'all_status', false),
+              const SizedBox(width: 4),
+              _chip('مكتمل', 'paid', false),
+              const SizedBox(width: 4),
+              _chip('جزئي', 'partial', false),
+              const SizedBox(width: 4),
+              _chip('لم يدفع', 'unpaid', false),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _chip(String label, String value, {bool isStatus = false}) {
-    final isActive = isStatus ? _paymentStatus == value : _scope == value;
-    return ChoiceChip(
-      label: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87)),
-      selected: isActive,
-      selectedColor: isStatus ? AppColors.secondary : AppColors.primary(context),
-      onSelected: (_) {
-        setState(() {
-          if (isStatus) {
-            _paymentStatus = value == 'all_status' ? 'all' : value;
-          } else {
-            _scope = value;
-          }
-        });
-      },
+  Widget _chip(String label, String value, bool isScope) {
+    final isActive = isScope ? _scope == value : _paymentStatus == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          if (isScope) _scope = value;
+          else _paymentStatus = value == 'all_status' ? 'all' : value;
+        }),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 11, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -171,23 +202,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _sumItem('عدد الطلاب', '${list.length}', Colors.blueGrey),
-              _sumItem('إجمالي المطلوب', money(totalReq), Colors.blueGrey),
+              _sumItem('الطلاب', '${list.length}', Colors.blueGrey),
+              _sumItem('المطلوب', money(totalReq), Colors.blueGrey),
             ],
           ),
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _sumItem('إجمالي المدفوع', money(totalPaid), AppColors.ok),
-              _sumItem('إجمالي المتبقي', money(totalRem), AppColors.none),
+              _sumItem('المدفوع', money(totalPaid), AppColors.ok),
+              _sumItem('المتبقي', money(totalRem), AppColors.none),
             ],
           ),
         ],
@@ -209,7 +240,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
