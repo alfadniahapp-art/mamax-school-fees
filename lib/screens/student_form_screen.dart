@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/student.dart';
+import '../models/student.dart'; // هذا السطر هو الذي يحل مشكلة Gender
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
 
@@ -93,57 +93,147 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.student == null ? 'إضافة طالب' : 'تعديل طالب')),
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        title: Text(widget.student == null ? 'إضافة طالب جديد' : 'تعديل بيانات الطالب'),
+        elevation: 0,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           children: [
-            TextFormField(controller: _name, decoration: const InputDecoration(labelText: 'اسم الطالب'), validator: (v) => v!.isEmpty ? 'مطلوب' : null),
-            const SizedBox(height: 16),
-            Row(
+            _buildCard(
+              title: 'بيانات الطالب',
+              icon: Icons.person,
               children: [
-                Expanded(
-                  child: DropdownButtonFormField<Stage>(
-                    value: _stage,
-                    decoration: const InputDecoration(labelText: 'المرحلة'),
-                    items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
-                    onChanged: (v) { if (v != null) setState(() { _stage = v; if (_cls > stageCount(v)) _cls = 1; _loadFees(); }); },
+                TextFormField(
+                  controller: _name,
+                  decoration: const InputDecoration(
+                    labelText: 'اسم الطالب بالكامل',
+                    prefixIcon: Icon(Icons.badge),
+                    filled: true,
+                    fillColor: Colors.white,
                   ),
+                  validator: (v) => v!.isEmpty ? 'مطلوب' : null,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownButtonFormField<int>(
-                    value: _cls,
-                    decoration: const InputDecoration(labelText: 'الصف'),
-                    items: List.generate(stageCount(_stage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
-                    onChanged: (v) { if (v != null) setState(() { _cls = v; _loadFees(); }); },
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<Stage>(
+                        value: _stage,
+                        decoration: const InputDecoration(
+                          labelText: 'المرحلة',
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
+                        onChanged: (v) { if (v != null) setState(() { _stage = v; if (_cls > stageCount(v)) _cls = 1; _loadFees(); }); },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: _cls,
+                        decoration: const InputDecoration(
+                          labelText: 'الصف',
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: List.generate(stageCount(_stage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
+                        onChanged: (v) { if (v != null) setState(() { _cls = v; _loadFees(); }); },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<Gender>(
+                  value: _gender,
+                  decoration: const InputDecoration(
+                    labelText: 'النوع',
+                    filled: true,
+                    fillColor: Colors.white,
                   ),
+                  items: const [
+                    DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
+                    DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
+                  ],
+                  onChanged: (v) { if (v != null) setState(() => _gender = v); },
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<Gender>(
-              value: _gender,
-              decoration: const InputDecoration(labelText: 'النوع'),
-              items: const [
-                DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
-                DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
-              ],
-              onChanged: (v) { if (v != null) setState(() => _gender = v); },
-            ),
-            const SizedBox(height: 20),
-            TextFormField(controller: _feeBase, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الرسوم الأساسية'), onChanged: (_) => setState(_recalcInstallments)),
             const SizedBox(height: 16),
-            TextFormField(controller: _inst1, decoration: const InputDecoration(labelText: 'القسط الأول')),
-            const SizedBox(height: 10),
-            TextFormField(controller: _inst2, decoration: const InputDecoration(labelText: 'القسط الثاني')),
-            const SizedBox(height: 10),
-            TextFormField(controller: _inst3, decoration: const InputDecoration(labelText: 'القسط الثالث')),
+            _buildCard(
+              title: 'الرسوم والأقساط',
+              icon: Icons.payments,
+              children: [
+                TextFormField(
+                  controller: _feeBase,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'الرسوم الأساسية',
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (_) => setState(_recalcInstallments),
+                ),
+                const SizedBox(height: 16),
+                const Text('توزيع الأقساط (قابل للتعديل)', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: TextFormField(controller: _inst1, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'القسط 1', filled: true, fillColor: Colors.white))),
+                    const SizedBox(width: 8),
+                    Expanded(child: TextFormField(controller: _inst2, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'القسط 2', filled: true, fillColor: Colors.white))),
+                    const SizedBox(width: 8),
+                    Expanded(child: TextFormField(controller: _inst3, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'القسط 3', filled: true, fillColor: Colors.white))),
+                  ],
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
-            ElevatedButton(onPressed: _save, child: const Text('حفظ البيانات')),
+            SizedBox(
+              height: 55,
+              child: ElevatedButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.save, size: 22),
+                label: const Text('حفظ البيانات', style: TextStyle(fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary(context),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCard({required String title, required IconData icon, required List<Widget> children}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 20, color: AppColors.primary(context)),
+              const SizedBox(width: 8),
+              Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context))),
+            ],
+          ),
+          const Divider(height: 24),
+          ...children,
+        ],
       ),
     );
   }
