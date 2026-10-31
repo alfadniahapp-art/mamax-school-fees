@@ -6,7 +6,6 @@ import '../utils/helpers.dart';
 import '../widgets/stat_card.dart';
 import 'student_form_screen.dart';
 import 'student_detail_screen.dart';
-import 'payments_screen.dart';
 import 'settings_screen.dart';
 import 'alerts_screen.dart';
 
@@ -20,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _searchCtrl = TextEditingController();
   Stage? _stageFilter;
   int? _clsFilter;
-  String _sortBy = 'name'; // name | remaining
+  String _sortBy = 'name';
 
   @override
   void dispose() {
@@ -41,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F7),
       appBar: AppBar(
-        title: const Text('دفتر رسوم الطلاب'),
+        title: const Text('رسومك الدراسية'),
         backgroundColor: kPrimaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
