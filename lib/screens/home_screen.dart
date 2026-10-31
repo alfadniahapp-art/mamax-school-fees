@@ -24,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _clsFilter;
   Gender? _genderFilter;
 
-  // متغيرات البحث في نافذة الدفع السريع
   String _quickSearch = '';
   Stage? _quickStage;
   int? _quickCls;
@@ -47,10 +46,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final filteredRemaining = filteredRequired - filteredPaid;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('لوحة التحكم', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('لوحة التحكم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(icon: const Icon(Icons.account_balance_wallet), tooltip: 'الخزينة', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TreasuryScreen()))),
           IconButton(icon: const Icon(Icons.bar_chart), tooltip: 'التقارير', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()))),
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 if (list.isEmpty)
-                  const SliverFillRemaining(child: Center(child: Text('لا يوجد طلاب مطابقون للبحث', style: TextStyle(color: Colors.grey)))),
+                  const SliverFillRemaining(child: Center(child: Text('لا يوجد طلاب مطابقون للبحث', style: TextStyle(color: Colors.grey, fontSize: 16)))),
               ],
             ),
           ),
@@ -105,8 +105,15 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: ElevatedButton(
           onPressed: onTap,
-          style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 4),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 20), const SizedBox(height: 4), Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.center)]),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color, 
+            foregroundColor: Colors.white, 
+            padding: const EdgeInsets.symmetric(vertical: 14), 
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), 
+            elevation: 4,
+            shadowColor: color.withOpacity(0.5),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 24), const SizedBox(height: 6), Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), textAlign: TextAlign.center)]),
         ),
       ),
     );
@@ -121,11 +128,10 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            // الفلترة للبحث السريع
             var filtered = app.students.where((s) {
               if (_quickStage != null && s.stage != _quickStage) return false;
               if (_quickCls != null && s.cls != _quickCls) return false;
@@ -136,9 +142,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return Container(
               height: MediaQuery.of(context).size.height * 0.85,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -148,24 +156,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const Divider(),
                   
-                  // أدوات البحث والفلترة
                   TextField(
-                    decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey.shade100, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                    decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey.shade100, border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)),
                     onChanged: (v) => setModalState(() => _quickSearch = v.trim()),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<Stage?>(
                           value: _quickStage,
-                          decoration: const InputDecoration(labelText: 'المرحلة', isDense: true),
-                          items: const [
-                            DropdownMenuItem(value: null, child: Text('الكل')),
-                            DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')),
-                            DropdownMenuItem(value: Stage.middle, child: Text('متوسط')),
-                            DropdownMenuItem(value: Stage.high, child: Text('ثانوي')),
-                          ],
+                          decoration: InputDecoration(labelText: 'المرحلة', isDense: true, filled: true, fillColor: Colors.grey.shade100, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                          items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')), DropdownMenuItem(value: Stage.middle, child: Text('متوسط')), DropdownMenuItem(value: Stage.high, child: Text('ثانوي'))],
                           onChanged: (v) => setModalState(() { _quickStage = v; _quickCls = null; }),
                         ),
                       ),
@@ -173,25 +175,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: DropdownButtonFormField<int?>(
                           value: _quickCls,
-                          decoration: const InputDecoration(labelText: 'الصف', isDense: true),
-                          items: [
-                            const DropdownMenuItem(value: null, child: Text('الكل')),
-                            ...List.generate(_quickStage != null ? stageCount(_quickStage!) : 6, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
-                          ],
+                          decoration: InputDecoration(labelText: 'الصف', isDense: true, filled: true, fillColor: Colors.grey.shade100, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                          items: [const DropdownMenuItem(value: null, child: Text('الكل')), ...List.generate(_quickStage != null ? stageCount(_quickStage!) : 6, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i])))],
                           onChanged: (v) => setModalState(() => _quickCls = v),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   DropdownButtonFormField<Gender?>(
                     value: _quickGender,
-                    decoration: const InputDecoration(labelText: 'القسم', isDense: true),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('الكل')),
-                      DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
-                      DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
-                    ],
+                    decoration: InputDecoration(labelText: 'القسم', isDense: true, filled: true, fillColor: Colors.grey.shade100, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                    items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))],
                     onChanged: (v) => setModalState(() => _quickGender = v),
                   ),
                   
@@ -204,11 +199,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemBuilder: (_, i) {
                             final s = filtered[i];
                             return Card(
-                              margin: const EdgeInsets.only(bottom: 8),
+                              elevation: 0,
+                              margin: const EdgeInsets.only(bottom: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.shade200)),
                               child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                 title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                subtitle: Text('${stageName(s.stage)} • ${classNames[s.cls - 1]} • ${genderName(s.gender)}'),
-                                trailing: Text(money(s.remaining), style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold)),
+                                subtitle: Text('${stageName(s.stage)} • ${classNames[s.cls - 1]} • ${genderName(s.gender)}', style: const TextStyle(fontSize: 12)),
+                                trailing: Text(money(s.remaining), style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold, fontSize: 14)),
                                 onTap: () {
                                   Navigator.pop(ctx);
                                   Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id)));
@@ -230,11 +228,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildTopStats(AppProvider app, int count, double req, double paid, double rem) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
       decoration: BoxDecoration(
         color: AppColors.primary(context),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-        boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
       ),
       child: Column(
         children: [
@@ -246,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _miniStat('إجمالي الخزينة', money(app.cashBalance + app.bankBalance), Icons.account_balance_wallet),
             ],
           ),
-          const Divider(color: Colors.white24, height: 24),
+          const Divider(color: Colors.white24, height: 28),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -264,10 +262,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _miniStat(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white70, size: 20),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+        Icon(icon, color: Colors.white70, size: 24),
+        const SizedBox(height: 6),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
       ],
     );
   }
@@ -276,36 +274,32 @@ class _HomeScreenState extends State<HomeScreen> {
     int maxClasses = _stageFilter != null ? stageCount(_stageFilter!) : 6;
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
       child: Column(
         children: [
-          TextField(controller: _searchCtrl, decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey.shade50, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)), onChanged: (_) => setState(() {})),
-          const SizedBox(height: 12),
+          TextField(
+            controller: _searchCtrl, 
+            decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey.shade50, border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)), 
+            onChanged: (_) => setState(() {})
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: DropdownButtonFormField<Stage?>(
                   value: _stageFilter,
-                  decoration: const InputDecoration(labelText: 'المرحلة', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('الكل')),
-                    DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')),
-                    DropdownMenuItem(value: Stage.middle, child: Text('متوسط')),
-                    DropdownMenuItem(value: Stage.high, child: Text('ثانوي')),
-                  ],
+                  decoration: InputDecoration(labelText: 'المرحلة', isDense: true, filled: true, fillColor: Colors.grey.shade50, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                  items: const [DropdownMenuItem(value: null, child: Text('الكل')), DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')), DropdownMenuItem(value: Stage.middle, child: Text('متوسط')), DropdownMenuItem(value: Stage.high, child: Text('ثانوي'))],
                   onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: DropdownButtonFormField<int?>(
                   value: _clsFilter,
-                  decoration: const InputDecoration(labelText: 'الصف', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('الكل')),
-                    ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
-                  ],
+                  decoration: InputDecoration(labelText: 'الصف', isDense: true, filled: true, fillColor: Colors.grey.shade50, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                  items: [const DropdownMenuItem(value: null, child: Text('الكل')), ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i])))],
                   onChanged: (v) => setState(() => _clsFilter = v),
                 ),
               ),
@@ -321,11 +315,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
     return Container(
       margin: const EdgeInsets.only(bottom: 12, right: 16, left: 16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: c.withOpacity(0.2), width: 1), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))]),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(20), 
+        border: Border.all(color: c.withOpacity(0.2), width: 1), 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))]
+      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id))).then((_) => setState(() {})),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -333,13 +332,17 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(radius: 22, backgroundColor: c.withOpacity(0.15), child: Text(s.name.substring(0, 1), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 18))),
-                    const SizedBox(width: 12),
+                    CircleAvatar(
+                      radius: 26, 
+                      backgroundColor: c.withOpacity(0.15), 
+                      child: Text(s.name.substring(0, 1), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 20))
+                    ),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                           const SizedBox(height: 4),
                           Text('${stageName(s.stage)} • ${classNames[s.cls - 1]} • ${genderName(s.gender)}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                         ],
@@ -348,14 +351,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(money(s.remaining), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 14)),
-                        const Text('المتبقي', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        Text(money(s.remaining), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 15)),
+                        const Text('المتبقي', style: TextStyle(fontSize: 11, color: Colors.grey)),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                ClipRRect(borderRadius: BorderRadius.circular(6), child: LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade100, minHeight: 8)),
+                const SizedBox(height: 14),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8), 
+                  child: LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade100, minHeight: 8)
+                ),
               ],
             ),
           ),
