@@ -37,20 +37,18 @@ class StudentDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Text('${stageName(s.stage)} - ${classNames[s.cls - 1]}', style: const TextStyle(color: AppColors.textMuted)),
+                  Text('${stageName(s.stage)} - ${classNames[s.cls - 1]}', style: TextStyle(color: AppColors.textMuted(context))),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _finItem('المطلوب', s.totalRequired, Colors.blueGrey),
-                      _finItem('المدفوع', s.totalPaid, AppColors.ok),
-                      _finItem('المتبقي', s.remaining, AppColors.none),
+                      _finItem(context, 'المطلوب', s.totalRequired, Colors.blueGrey),
+                      _finItem(context, 'المدفوع', s.totalPaid, AppColors.ok),
+                      _finItem(context, 'المتبقي', s.remaining, AppColors.none),
                     ],
                   ),
                   const SizedBox(height: 16),
                   LinearProgressIndicator(value: pct, color: c, minHeight: 8, backgroundColor: Colors.grey.shade200),
-                  
-                  // زر سداد كامل المبلغ
                   if (s.remaining > 0)
                     Padding(
                       padding: const EdgeInsets.only(top: 16),
@@ -60,10 +58,7 @@ class StudentDetailScreen extends StatelessWidget {
                           onPressed: () => showPaymentDialog(context, s, presetType: FeeType.inst1, presetAmount: s.remaining),
                           icon: const Icon(Icons.payment),
                           label: const Text('سداد كامل المبلغ المتبقي'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.secondary, // لون ذهبي مميز
-                            foregroundColor: Colors.white,
-                          ),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary, foregroundColor: Colors.white),
                         ),
                       ),
                     ),
@@ -84,10 +79,10 @@ class StudentDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _finItem(String label, double value, Color color) {
+  Widget _finItem(BuildContext context, String label, double value, Color color) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+        Text(label, style: TextStyle(fontSize: 12, color: AppColors.textMuted(context))),
         Text(money(value), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
       ],
     );
