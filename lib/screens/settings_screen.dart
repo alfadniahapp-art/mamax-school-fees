@@ -12,7 +12,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _pctA, _pctB, _pctC, _warnDays;
-  late TextEditingController _bankName, _bankAcc, _bankPhone;
+  late TextEditingController _bankNameCtrl, _bankName, _bankAcc, _bankPhone;
 
   @override
   void initState() {
@@ -22,6 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _pctB = TextEditingController(text: s.pctB.toStringAsFixed(0));
     _pctC = TextEditingController(text: s.pctC.toStringAsFixed(0));
     _warnDays = TextEditingController(text: '${s.warnDays}');
+    _bankNameCtrl = TextEditingController(text: s.bankName);
     _bankName = TextEditingController(text: s.bankAccountName);
     _bankAcc = TextEditingController(text: s.bankAccountNumber);
     _bankPhone = TextEditingController(text: s.bankPhone);
@@ -34,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       pctB: double.tryParse(_pctB.text) ?? 25,
       pctC: double.tryParse(_pctC.text) ?? 25,
       warnDays: int.tryParse(_warnDays.text) ?? 14,
+      bankName: _bankNameCtrl.text.trim(),
       bankAccountName: _bankName.text.trim(),
       bankAccountNumber: _bankAcc.text.trim(),
       bankPhone: _bankPhone.text.trim(),
@@ -46,67 +48,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProv = context.watch<ThemeProvider>();
-
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(title: const Text('الإعدادات')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _card('النسخ الاحتياطي', [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.backup, color: AppColors.ok),
-              title: const Text('حفظ نسخة من البيانات (تصدير)'),
-              onTap: () => context.read<AppProvider>().exportData(),
-            ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.restore, color: AppColors.partial),
-              title: const Text('استعادة نسخة احتياطية'),
-              onTap: () async {
-                final success = await context.read<AppProvider>().importData();
-                if (success && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم استعادة البيانات'), backgroundColor: AppColors.ok));
-                }
-              },
-            ),
-          ]),
-          _card('المظهر والألوان', [
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('الوضع الليلي (Dark Mode)'),
-              secondary: Icon(themeProv.isDark ? Icons.dark_mode : Icons.light_mode, color: AppColors.primary(context)),
-              value: themeProv.isDark,
-              onChanged: (v) => themeProv.toggleTheme(),
-            ),
-            const Divider(),
-            const Text('اللون الأساسي للتطبيق', style: TextStyle(fontSize: 13, color: Colors.grey)),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _colorDot(const Color(0xFF0F766E), themeProv),
-                _colorDot(const Color(0xFF2563EB), themeProv),
-                _colorDot(const Color(0xFF7C3AED), themeProv),
-                _colorDot(const Color(0xFFDC2626), themeProv),
-                _colorDot(const Color(0xFF1F2937), themeProv),
-              ],
-            ),
-          ]),
-          _card('نسب الأقساط', [
-            Row(
-              children: [
-                Expanded(child: TextField(controller: _pctA, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط أول %'))),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _pctB, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط ثاني %'))),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _pctC, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط أخير %'))),
-              ],
-            ),
-          ]),
-          _card('حساب البنك', [
+          _card('بيانات البنك', [
+            TextField(controller: _bankNameCtrl, decoration: const InputDecoration(labelText: 'اسم البنك')),
+            const SizedBox(height: 8),
             TextField(controller: _bankName, decoration: const InputDecoration(labelText: 'اسم صاحب الحساب')),
             const SizedBox(height: 8),
             TextField(controller: _bankAcc, decoration: const InputDecoration(labelText: 'رقم الحساب')),
@@ -120,22 +70,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('حفظ الإعدادات')
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _colorDot(Color color, ThemeProvider themeProv) {
-    final isSelected = themeProv.primaryColor == color;
-    return GestureDetector(
-      onTap: () => themeProv.changePrimaryColor(color),
-      child: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
-        ),
-        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
       ),
     );
   }
