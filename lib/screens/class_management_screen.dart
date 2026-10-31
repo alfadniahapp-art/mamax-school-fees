@@ -99,7 +99,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildCard(
+                    _buildCard(
             title: '2. رسوم الفصل وتوزيع الأقساط',
             icon: Icons.payments,
             children: [
@@ -150,4 +150,11 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, size: 20, color: AppColors.primary(context)),
+          Row(children: [Icon(icon, size: 20, color: AppColors.primary(context)), const SizedBox(width: 8), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))]),
+          const Divider(height: 24),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
