@@ -24,11 +24,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _clsFilter;
   Gender? _genderFilter;
 
+  // متغيرات البحث في نافذة الدفع السريع
+  String _quickSearch = '';
+  Stage? _quickStage;
+  int? _quickCls;
+  Gender? _quickGender;
+
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
     
-    // 1. الفلترة بناءً على الاختيارات
     var list = app.students.where((s) {
       if (_stageFilter != null && s.stage != _stageFilter) return false;
       if (_clsFilter != null && s.cls != _clsFilter) return false;
@@ -37,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return true;
     }).toList();
 
-    // 2. حساب الإحصائيات بناءً على القائمة المفلترة فقط
     final filteredRequired = list.fold(0.0, (sum, s) => sum + s.totalRequired);
     final filteredPaid = list.fold(0.0, (sum, s) => sum + s.totalPaid);
     final filteredRemaining = filteredRequired - filteredPaid;
@@ -113,30 +117,113 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أضف طالباً أولاً')));
       return;
     }
-    showDialog(
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('تسجيل دفعة سريعة'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 400,
-          child: ListView.builder(
-            itemCount: app.students.length,
-            itemBuilder: (_, i) {
-              final s = app.students[i];
-              return ListTile(
-                title: Text(s.name),
-                subtitle: Text('${stageName(s.stage)} - ${classNames[s.cls - 1]}'),
-                trailing: Text(money(s.remaining), style: const TextStyle(color: AppColors.none)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id)));
-                },
-              );
-            },
-          ),
-        ),
-      ),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            // الفلترة للبحث السريع
+            var filtered = app.students.where((s) {
+              if (_quickStage != null && s.stage != _quickStage) return false;
+              if (_quickCls != null && s.cls != _quickCls) return false;
+              if (_quickGender != null && s.gender != _quickGender) return false;
+              if (_quickSearch.isNotEmpty && !s.name.contains(_quickSearch)) return false;
+              return true;
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.85,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('تسجيل دفعة سريعة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  const Divider(),
+                  
+                  // أدوات البحث والفلترة
+                  TextField(
+                    decoration: InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey.shade100, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                    onChanged: (v) => setModalState(() => _quickSearch = v.trim()),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<Stage?>(
+                          value: _quickStage,
+                          decoration: const InputDecoration(labelText: 'المرحلة', isDense: true),
+                          items: const [
+                            DropdownMenuItem(value: null, child: Text('الكل')),
+                            DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')),
+                            DropdownMenuItem(value: Stage.middle, child: Text('متوسط')),
+                            DropdownMenuItem(value: Stage.high, child: Text('ثانوي')),
+                          ],
+                          onChanged: (v) => setModalState(() { _quickStage = v; _quickCls = null; }),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButtonFormField<int?>(
+                          value: _quickCls,
+                          decoration: const InputDecoration(labelText: 'الصف', isDense: true),
+                          items: [
+                            const DropdownMenuItem(value: null, child: Text('الكل')),
+                            ...List.generate(_quickStage != null ? stageCount(_quickStage!) : 6, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
+                          ],
+                          onChanged: (v) => setModalState(() => _quickCls = v),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<Gender?>(
+                    value: _quickGender,
+                    decoration: const InputDecoration(labelText: 'القسم', isDense: true),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('الكل')),
+                      DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
+                      DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
+                    ],
+                    onChanged: (v) => setModalState(() => _quickGender = v),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: filtered.isEmpty 
+                      ? const Center(child: Text('لا يوجد طلاب مطابقون', style: TextStyle(color: Colors.grey)))
+                      : ListView.builder(
+                          itemCount: filtered.length,
+                          itemBuilder: (_, i) {
+                            final s = filtered[i];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Text('${stageName(s.stage)} • ${classNames[s.cls - 1]} • ${genderName(s.gender)}'),
+                                trailing: Text(money(s.remaining), style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold)),
+                                onTap: () {
+                                  Navigator.pop(ctx);
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id)));
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -151,7 +238,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
-          // إحصائيات الخزينة (ثابتة)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -161,7 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const Divider(color: Colors.white24, height: 24),
-          // إحصائيات الطلاب (تتغير حسب الفلتر)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
