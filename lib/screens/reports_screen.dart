@@ -127,7 +127,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
       appBar: AppBar(
         title: const Text('التقارير والإحصائيات', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -170,7 +170,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _buildReportTypeSelector() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: AppColors.surface(context),
       child: Row(
         children: [
           Expanded(
@@ -179,7 +179,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               icon: const Icon(Icons.people),
               label: const Text('تقارير الطلاب'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _reportType == 'students' ? AppColors.primary(context) : Colors.grey.shade100,
+                backgroundColor: _reportType == 'students' ? AppColors.primary(context) : AppColors.bg(context),
                 foregroundColor: _reportType == 'students' ? Colors.white : Colors.black87,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -193,7 +193,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               icon: const Icon(Icons.account_balance_wallet),
               label: const Text('تقارير الخزينة'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : Colors.grey.shade100,
+                backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : AppColors.bg(context),
                 foregroundColor: _reportType == 'treasury' ? Colors.white : Colors.black87,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -208,7 +208,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _buildStudentFilters() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: AppColors.surface(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -254,7 +254,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _buildTreasuryFilters() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: AppColors.surface(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -281,7 +281,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       labelText: label,
       isDense: true,
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.bg(context),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     );
@@ -298,7 +298,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : Colors.grey.shade100, 
+            color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : AppColors.bg(context), 
             borderRadius: BorderRadius.circular(10)
           ),
           child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
@@ -315,7 +315,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isActive ? AppColors.secondary : Colors.grey.shade100, 
+            color: isActive ? AppColors.secondary : AppColors.bg(context), 
             borderRadius: BorderRadius.circular(10)
           ),
           child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
@@ -341,7 +341,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _summaryCard(String l1, String v1, String l2, String v2, String l3, String v3, String l4, String v4) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
+      decoration: BoxDecoration(
+        color: AppColors.surface(context), 
+        borderRadius: BorderRadius.circular(20), 
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
+      ),
       child: Column(
         children: [
           Row(
@@ -370,7 +375,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildStudentTable(List<Student> list) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
+      decoration: BoxDecoration(
+        color: AppColors.surface(context), 
+        borderRadius: BorderRadius.circular(20), 
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
@@ -413,7 +423,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildTreasuryTable(List<FinancialTransaction> list) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
+      decoration: BoxDecoration(
+        color: AppColors.surface(context), 
+        borderRadius: BorderRadius.circular(20), 
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
