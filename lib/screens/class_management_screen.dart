@@ -25,6 +25,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
   DateTime? _due2;
   DateTime? _due3;
   
+  // خيارات تحديد نوع الرسوم
   bool _includeReg = false;
   bool _includeExam = false;
 
@@ -102,22 +103,46 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // جدول تحديد الرسوم
           _buildFeesTable(context),
           const SizedBox(height: 16),
+
+          // 1. تحديد الفصل
           _buildCard(
             title: '1. تحديد الفصل والنوع',
             icon: Icons.group,
             children: [
               Row(children: [
-                Expanded(child: DropdownButtonFormField<Stage>(value: _selectedStage, decoration: const InputDecoration(labelText: 'المرحلة', filled: true, fillColor: Colors.white), items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(), onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; _loadClassFee(); }))),
+                Expanded(
+                  child: DropdownButtonFormField<Stage>(
+                    value: _selectedStage,
+                    decoration: const InputDecoration(labelText: 'المرحلة', filled: true, fillColor: Colors.white),
+                    items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
+                    onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; _loadClassFee(); }),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: DropdownButtonFormField<int>(value: _selectedClass, decoration: const InputDecoration(labelText: 'الصف', filled: true, fillColor: Colors.white), items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))), onChanged: (v) => setState(() => _selectedClass = v!))),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    value: _selectedClass,
+                    decoration: const InputDecoration(labelText: 'الصف', filled: true, fillColor: Colors.white),
+                    items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
+                    onChanged: (v) => setState(() => _selectedClass = v!),
+                  ),
+                ),
               ]),
               const SizedBox(height: 12),
-              DropdownButtonFormField<Gender>(value: _selectedGender, decoration: const InputDecoration(labelText: 'النوع', filled: true, fillColor: Colors.white), items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))], onChanged: (v) => setState(() => _selectedGender = v!)),
+              DropdownButtonFormField<Gender>(
+                value: _selectedGender,
+                decoration: const InputDecoration(labelText: 'النوع', filled: true, fillColor: Colors.white),
+                items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))],
+                onChanged: (v) => setState(() => _selectedGender = v!),
+              ),
             ],
           ),
           const SizedBox(height: 16),
+          
+          // 2. الرسوم
           _buildCard(
             title: '2. رسوم الفصل وتوزيع الأقساط',
             icon: Icons.payments,
@@ -138,32 +163,51 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                 Expanded(child: InkWell(onTap: () => _pickDate(false), child: InputDecorator(decoration: const InputDecoration(labelText: 'استحقاق القسط 3', filled: true, fillColor: Colors.white), child: Text(_due3 == null ? 'غير محدد' : dateStr(_due3), style: const TextStyle(fontSize: 13))))),
               ]),
               const SizedBox(height: 16),
-              // خيارات الرسوم الإضافية
+              
+              // خيارات أنواع الرسوم
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('شامل رسوم التسجيل', style: TextStyle(fontSize: 14)),
                 value: _includeReg,
                 onChanged: (v) => setState(() => _includeReg = v),
               ),
-              if (_includeReg) TextField(controller: _regFeeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قيمة رسوم التسجيل', filled: true, fillColor: Colors.white)),
+              if (_includeReg) 
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: TextField(controller: _regFeeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قيمة رسوم التسجيل', filled: true, fillColor: Colors.white)),
+                ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('شامل رسوم الامتحانات', style: TextStyle(fontSize: 14)),
                 value: _includeExam,
                 onChanged: (v) => setState(() => _includeExam = v),
               ),
-              if (_includeExam) TextField(controller: _examFeeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قيمة رسوم الامتحانات', filled: true, fillColor: Colors.white)),
+              if (_includeExam) 
+                TextField(controller: _examFeeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قيمة رسوم الامتحانات', filled: true, fillColor: Colors.white)),
             ],
           ),
           const SizedBox(height: 16),
+          
+          // 3. الأسماء
           _buildCard(
             title: '3. أسماء الطلاب (اسم في كل سطر)',
             icon: Icons.list_alt,
             children: [
-              TextField(controller: _studentsTextCtrl, maxLines: 6, decoration: const InputDecoration(hintText: 'محمد أحمد\nعلي خديوي\nعمر ياسر\n...', filled: true, fillColor: Colors.white, helperText: 'أدخل اسم كل طالب في سطر منفصل')),
+              TextField(
+                controller: _studentsTextCtrl,
+                maxLines: 6,
+                decoration: const InputDecoration(
+                  hintText: 'محمد أحمد\nعلي خديوي\nعمر ياسر\n...',
+                  filled: true,
+                  fillColor: Colors.white,
+                  helperText: 'أدخل اسم كل طالب في سطر منفصل',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
+          
+          // زر الحفظ
           SizedBox(
             height: 55,
             child: ElevatedButton.icon(
@@ -237,3 +281,9 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
         children: [
           Row(children: [Icon(icon, size: 20, color: AppColors.primary(context)), const SizedBox(width: 8), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))]),
           const Divider(height: 24),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
