@@ -1,12 +1,10 @@
 class AppSettings {
-  double pctA; // نسبة القسط الأول (افتراضي 50%)
-  double pctB; // نسبة القسط الثاني (افتراضي 25%)
-  double pctC; // نسبة القسط الأخير (افتراضي 25%)
-  
-  int warnDays;         // التنبيه قبل الاستحقاق بـ (أيام)
-  int alertRepeatCount; // عدد تكرار التنبيه
-  
-  // بيانات الحساب البنكي
+  double pctA;
+  double pctB;
+  double pctC;
+  int warnDays;
+  int alertRepeatCount;
+  String bankName;
   String bankAccountName;
   String bankAccountNumber;
   String bankPhone;
@@ -17,6 +15,7 @@ class AppSettings {
     this.pctC = 25,
     this.warnDays = 14,
     this.alertRepeatCount = 1,
+    this.bankName = '',
     this.bankAccountName = '',
     this.bankAccountNumber = '',
     this.bankPhone = '',
@@ -28,6 +27,7 @@ class AppSettings {
         'pctC': pctC,
         'warnDays': warnDays,
         'alertRepeatCount': alertRepeatCount,
+        'bankName': bankName,
         'bankAccountName': bankAccountName,
         'bankAccountNumber': bankAccountNumber,
         'bankPhone': bankPhone,
@@ -39,6 +39,7 @@ class AppSettings {
         pctC: (j['pctC'] ?? 25).toDouble(),
         warnDays: j['warnDays'] ?? 14,
         alertRepeatCount: j['alertRepeatCount'] ?? 1,
+        bankName: j['bankName'] ?? '',
         bankAccountName: j['bankAccountName'] ?? '',
         bankAccountNumber: j['bankAccountNumber'] ?? '',
         bankPhone: j['bankPhone'] ?? '',
@@ -50,6 +51,7 @@ class AppSettings {
     double? pctC,
     int? warnDays,
     int? alertRepeatCount,
+    String? bankName,
     String? bankAccountName,
     String? bankAccountNumber,
     String? bankPhone,
@@ -60,6 +62,7 @@ class AppSettings {
       pctC: pctC ?? this.pctC,
       warnDays: warnDays ?? this.warnDays,
       alertRepeatCount: alertRepeatCount ?? this.alertRepeatCount,
+      bankName: bankName ?? this.bankName,
       bankAccountName: bankAccountName ?? this.bankAccountName,
       bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
       bankPhone: bankPhone ?? this.bankPhone,
