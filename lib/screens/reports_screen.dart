@@ -46,28 +46,36 @@ class _ReportsScreenState extends State<ReportsScreen> {
           if (_reportType == 'students')
             pw.TableHelper.fromTextArray(
               headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
-              data: data.map((s) {
-                final pct = s.paidPct;
+              data: data.map<List<String>>((dynamic s) {
+                final student = s as Student;
+                final pct = student.paidPct;
                 final status = pct >= 1 ? 'مكتمل' : pct > 0 ? 'جزئي' : 'لم يدفع';
-                return [s.name, classNames[s.cls - 1], genderName(s.gender), money(s.totalRequired), money(s.totalPaid), money(s.remaining), status];
+                return [student.name, classNames[student.cls - 1], genderName(student.gender), money(student.totalRequired), money(student.totalPaid), money(student.remaining), status];
               }).toList(),
             )
           else
             pw.TableHelper.fromTextArray(
               headers: ['التاريخ', 'النوع', 'الجهة', 'طريقة الدفع', 'المبلغ'],
-              data: data.map((FinancialTransaction tx) => [
-                dateStr(tx.date), 
-                tx.type == 'deposit' ? 'إيداع' : tx.type == 'withdraw' ? 'سحب' : 'تحويل', 
-                tx.entityName, 
-                tx.method == 'cash' ? 'كاش' : 'بنك', 
-                money(tx.amount)
-              ]).toList(),
+              data: data.map<List<String>>((dynamic t) {
+                final tx = t as FinancialTransaction;
+                return [
+                  dateStr(tx.date), 
+                  tx.type == 'deposit' ? 'إيداع' : tx.type == 'withdraw' ? 'سحب' : 'تحويل', 
+                  tx.entityName, 
+                  tx.method == 'cash' ? 'كاش' : 'بنك', 
+                  money(tx.amount)
+                ];
+              }).toList(),
             ),
         ],
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (format) => pdf.save());
+    // معاينة مع إمكانية التكبير والتصغير
+    await Printing.layoutPdf(
+      onLayout: (format) => pdf.save(),
+      name: 'report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
   }
 
   @override
@@ -132,6 +140,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
     );
   }
+
   Widget _buildReportTypeSelector() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -387,6 +396,3 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 }
-
-
-  
