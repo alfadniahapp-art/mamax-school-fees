@@ -97,7 +97,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
       appBar: AppBar(
         title: const Text('إدارة وتسجيل الفصول', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -227,7 +227,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       helperText: helperText,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surface(context), // حقل يأخذ لون البطاقة
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
@@ -237,8 +237,9 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
@@ -292,8 +293,9 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
