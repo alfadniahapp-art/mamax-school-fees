@@ -13,6 +13,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _pctA, _pctB, _pctC, _warnDays;
   late TextEditingController _bankNameCtrl, _bankName, _bankAcc, _bankPhone;
+  late TextEditingController _schoolNameCtrl, _accountantNameCtrl;
 
   @override
   void initState() {
@@ -26,6 +27,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _bankName = TextEditingController(text: s.bankAccountName);
     _bankAcc = TextEditingController(text: s.bankAccountNumber);
     _bankPhone = TextEditingController(text: s.bankPhone);
+    _schoolNameCtrl = TextEditingController(text: s.schoolName);
+    _accountantNameCtrl = TextEditingController(text: s.accountantName);
   }
 
   Future<void> _save() async {
@@ -39,6 +42,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bankAccountName: _bankName.text.trim(),
       bankAccountNumber: _bankAcc.text.trim(),
       bankPhone: _bankPhone.text.trim(),
+      schoolName: _schoolNameCtrl.text.trim(),
+      accountantName: _accountantNameCtrl.text.trim(),
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
@@ -56,6 +61,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // بيانات المدرسة والمحاسب
+          _card('بيانات المدرسة والمحاسب', [
+            TextField(controller: _schoolNameCtrl, decoration: const InputDecoration(labelText: 'اسم المدرسة')),
+            const SizedBox(height: 8),
+            TextField(controller: _accountantNameCtrl, decoration: const InputDecoration(labelText: 'اسم المحاسب')),
+          ]),
           _card('المظهر والألوان', [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
