@@ -25,7 +25,6 @@ class AppProvider extends ChangeNotifier {
   static const _kTransactions = 'transactions_v1';
   static const _kClassFees = 'class_fees_v1';
 
-  // ذاكرة لحفظ رسوم كل فصل: مفتاح مثل "primary-1" وقيمة الرسوم
   Map<String, double> _classFees = {};
 
   Future<void> load() async {
@@ -34,19 +33,13 @@ class AppProvider extends ChangeNotifier {
     _pinCode = prefs.getString(_kPin) ?? '1234';
 
     final s = prefs.getString(_kStudents);
-    if (s != null) {
-      try { students = (jsonDecode(s) as List).map((e) => Student.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); }
-    }
+    if (s != null) { try { students = (jsonDecode(s) as List).map((e) => Student.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); } }
 
     final tx = prefs.getString(_kTransactions);
-    if (tx != null) {
-      try { transactions = (jsonDecode(tx) as List).map((e) => FinancialTransaction.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); }
-    }
+    if (tx != null) { try { transactions = (jsonDecode(tx) as List).map((e) => FinancialTransaction.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); } }
 
     final st = prefs.getString(_kSettings);
-    if (st != null) {
-      try { settings = AppSettings.fromJson(jsonDecode(st)); } catch (e) { debugPrint('$e'); }
-    }
+    if (st != null) { try { settings = AppSettings.fromJson(jsonDecode(st)); } catch (e) { debugPrint('$e'); } }
 
     final cf = prefs.getString(_kClassFees);
     if (cf != null) {
@@ -55,7 +48,6 @@ class AppProvider extends ChangeNotifier {
         _classFees = decoded.map((key, value) => MapEntry(key, (value as num).toDouble()));
       } catch (e) { debugPrint('$e'); }
     }
-    
     isLoading = false;
     notifyListeners();
   }
@@ -69,24 +61,10 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // دالة لتعيين رسوم فصل معين
-  Future<void> setClassFee(String key, double fee) async {
-    _classFees[key] = fee;
-    await _save();
-  }
+  Future<void> setClassFee(String key, double fee) async { _classFees[key] = fee; await _save(); }
+  double getClassFee(String key) => _classFees[key] ?? 200000;
 
-  // دالة لجلب رسوم فصل معين (إذا لم توجد، ترجع الرسوم الافتراضية 200000)
-  double getClassFee(String key) {
-    return _classFees[key] ?? 200000;
-  }
-
-  Future<void> savePin(String pin) async {
-    final prefs = await SharedPreferences.getInstance();
-    _pinCode = pin;
-    await prefs.setString(_kPin, pin);
-    notifyListeners();
-  }
-
+  Future<void> savePin(String pin) async { final prefs = await SharedPreferences.getInstance(); _pinCode = pin; await prefs.setString(_kPin, pin); notifyListeners(); }
   bool checkPin(String input) => input == _pinCode;
   void unlock() { isUnlocked = true; notifyListeners(); }
   void lock() { isUnlocked = false; notifyListeners(); }
@@ -98,11 +76,38 @@ class AppProvider extends ChangeNotifier {
   Future<void> deleteStudent(String id) async { students.removeWhere((e) => e.id == id); await _save(); }
   Student? getStudentById(String id) { try { return students.firstWhere((e) => e.id == id); } catch (_) { return null; } }
 
-  Future<void> addPayment(String studentId, Payment p) async { final s = students.firstWhere((e) => e.id == studentId); s.payments.add(p); await _save(); }
-  Future<void> removePayment(String studentId, String paymentId) async { final s = students.firstWhere((e) => e.id == studentId); s.payments.removeWhere((p) => p.id == paymentId); await _save(); }
+  // --- التعديل الجديد هنا: ربط الدفعة بالخزينة ---
+  Future<void> addPayment(String studentId, Payment p) async { 
+    // 1. إضافة الدفعة للطالب
+    final s = students.firstWhere((e) => e.id == studentId); 
+    s.payments.add(p); 
+    
+    // 2. إضافة العملية تلقائياً إلى الخزينة
+    final isCash = p.method == PaymentMethod.cash;
+    final newTx = FinancialTransaction(
+      id: newId(),
+      type: 'deposit',
+      method: isCash ? 'cash' : 'bank',
+      entityName: s.name,
+      amount: p.amount,
+      date: p.date,
+    );
+    transactions.add(newTx);
+
+    // 3. الحفظ
+    await _save(); 
+  }
+
+  Future<void> removePayment(String studentId, String paymentId) async { 
+    final s = students.firstWhere((e) => e.id == studentId); 
+    s.payments.removeWhere((p) => p.id == paymentId); 
+    await _save(); 
+  }
+  
   Future<void> addTransaction(FinancialTransaction tx) async { transactions.add(tx); await _save(); }
   Future<void> saveSettings(AppSettings s) async { settings = s; await _save(); }
 
+  // حساب رصيد الصندوق (كاش)
   double get cashBalance {
     double balance = 0;
     for (var tx in transactions) {
@@ -118,6 +123,7 @@ class AppProvider extends ChangeNotifier {
     return balance;
   }
 
+  // حساب رصيد البنك
   double get bankBalance {
     double balance = 0;
     for (var tx in transactions) {
