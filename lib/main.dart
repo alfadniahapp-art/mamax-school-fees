@@ -35,8 +35,7 @@ class MamaxApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      // إجبار الوضع الفاتح دائماً
-      themeMode: ThemeMode.light, 
+      themeMode: ThemeMode.light, // إجبار الوضع الفاتح دائماً
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Tahoma',
@@ -45,20 +44,12 @@ class MamaxApp extends StatelessWidget {
           brightness: Brightness.light,
           surface: Colors.white,
         ),
-        scaffoldBackgroundColor: themeProvider.derivedBackground,
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         appBarTheme: AppBarTheme(
           backgroundColor: themeProvider.primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
-        ),
-        cardTheme: CardTheme(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: themeProvider.derivedBorderColor, width: 1),
-          ),
-          elevation: 0,
         ),
       ),
       builder: (ctx, child) => Directionality(
