@@ -19,36 +19,46 @@ class StudentDetailScreen extends StatelessWidget {
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الملف المالي للطالب'),
+        title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
+        centerTitle: true,
         actions: [
-          IconButton(icon: const Icon(Icons.edit), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentFormScreen(student: s))).then((_) => (context as Element).markNeedsBuild())),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentFormScreen(student: s))).then((_) => (context as Element).markNeedsBuild()),
+          ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // البطاقة العلوية
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [c.withOpacity(0.8), c], begin: Alignment.topRight, end: Alignment.bottomLeft),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: c.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 5))],
+              gradient: LinearGradient(colors: [c.withOpacity(0.9), c], begin: Alignment.topRight, end: Alignment.bottomLeft),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: c.withOpacity(0.4), blurRadius: 15, offset: const Offset(0, 8))],
             ),
             child: Column(
               children: [
-                Text(s.name, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('${stageName(s.stage)} • ${classNames[s.cls - 1]} • ${genderName(s.gender)}', style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                const SizedBox(height: 20),
+                Text(s.name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                  child: Text('${stageName(s.stage)} • ${classNames[s.cls - 1]} • ${genderName(s.gender)}', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                ),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _whiteStat('المطلوب', money(s.totalRequired)),
-                    Container(width: 1, height: 30, color: Colors.white30),
+                    Container(width: 1, height: 40, color: Colors.white30),
                     _whiteStat('المدفوع', money(s.totalPaid)),
-                    Container(width: 1, height: 30, color: Colors.white30),
+                    Container(width: 1, height: 40, color: Colors.white30),
                     _whiteStat('المتبقي', money(s.remaining)),
                   ],
                 ),
@@ -61,8 +71,9 @@ class StudentDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text('سجل الأقساط والرسوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('سجل الأقساط والرسوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 12),
+          
           if (s.hasReg) _buildInstCard(context, s, FeeType.reg, 'رسوم التسجيل', s.feeReg),
           _buildInstCard(context, s, FeeType.inst1, 'القسط الأول', s.inst1),
           _buildInstCard(context, s, FeeType.inst2, 'القسط الثاني', s.inst2),
@@ -95,7 +106,7 @@ class StudentDetailScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 5, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -106,15 +117,15 @@ class StudentDetailScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(isDone ? Icons.check_circle : Icons.circle_outlined, color: c, size: 20),
+                    Icon(isDone ? Icons.check_circle : Icons.circle_outlined, color: c, size: 22),
                     const SizedBox(width: 8),
-                    Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-                  child: Text(isDone ? 'مسدد' : 'متبقي ${money(rem)}', style: TextStyle(color: c, fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: Text(isDone ? 'مسدد' : 'متبقي ${money(rem)}', style: TextStyle(color: c, fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
