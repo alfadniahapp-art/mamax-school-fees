@@ -25,6 +25,20 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
   DateTime? _due2;
   DateTime? _due3;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadClassFee();
+  }
+
+  void _loadClassFee() {
+    final app = context.read<AppProvider>();
+    final key = '${_selectedStage.name}-$_selectedClass';
+    final fee = app.getClassFee(key);
+    _baseFeeCtrl.text = fee.toStringAsFixed(0);
+    _recalcInstallments();
+  }
+
   void _recalcInstallments() {
     final base = double.tryParse(_baseFeeCtrl.text) ?? 0;
     final app = context.read<AppProvider>();
@@ -85,6 +99,10 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // جدول تحديد الرسوم
+          _buildFeesTable(context),
+          const SizedBox(height: 16),
+
           // 1. تحديد الفصل
           _buildCard(
             title: '1. تحديد الفصل والنوع',
@@ -96,7 +114,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                     value: _selectedStage,
                     decoration: const InputDecoration(labelText: 'المرحلة', filled: true, fillColor: Colors.white),
                     items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
-                    onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; }),
+                    onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; _loadClassFee(); }),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -174,6 +192,55 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
             ),
           ),
           const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeesTable(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [Icon(Icons.table_chart, size: 20, color: AppColors.primary(context)), const SizedBox(width: 8), Text('تحديد رسوم كل الفصول', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))]),
+          const Divider(height: 24),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columnSpacing: 16,
+              columns: const [
+                DataColumn(label: Text('الفصل')),
+                DataColumn(label: Text('الرسوم (قابلة للتعديل)')),
+                DataColumn(label: Text('إجراء')),
+              ],
+              rows: stagesList.expand((st) {
+                return List.generate(stageCount(st.stage), (i) {
+                  final key = '${st.stage.name}-${i + 1}';
+                  final fee = context.read<AppProvider>().getClassFee(key);
+                  return DataRow(cells: [
+                    DataCell(Text('${st.name} - ${classNames[i]}')),
+                    DataCell(
+                      SizedBox(
+                        width: 100,
+                        child: TextFormField(
+                          initialValue: fee.toStringAsFixed(0),
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()),
+                          onChanged: (v) {
+                            final newFee = double.tryParse(v) ?? 0;
+                            context.read<AppProvider>().setClassFee(key, newFee);
+                          },
+                        ),
+                      ),
+                    ),
+                    const DataCell(Icon(Icons.edit, size: 18, color: Colors.grey)),
+                  ]);
+                });
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );
