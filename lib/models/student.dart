@@ -1,7 +1,9 @@
 import 'payment.dart';
 
-/// المراحل الدراسية
 enum Stage { primary, middle, high }
+enum Gender { boys, girls }
+
+String genderName(Gender g) => g == Gender.boys ? 'بنين' : 'بنات';
 
 class StageInfo {
   final Stage stage;
@@ -18,36 +20,25 @@ const stagesList = [
 
 const classNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
 
-String stageName(Stage s) =>
-    stagesList.firstWhere((e) => e.stage == s).name;
-
-int stageCount(Stage s) =>
-    stagesList.firstWhere((e) => e.stage == s).classCount;
+String stageName(Stage s) => stagesList.firstWhere((e) => e.stage == s).name;
+int stageCount(Stage s) => stagesList.firstWhere((e) => e.stage == s).classCount;
 
 bool isFirstClass(Stage s, int cls) => cls == 1;
-
 bool isFinalClass(Stage s, int cls) {
   if (s == Stage.primary) return cls == 6;
   return cls == 3;
 }
 
-/// أنواع الرسوم
 enum FeeType { base, reg, exam, inst1, inst2, inst3 }
 
 String feeTypeLabel(FeeType t) {
   switch (t) {
-    case FeeType.base:
-      return 'رسوم أساسية';
-    case FeeType.reg:
-      return 'رسوم تسجيل';
-    case FeeType.exam:
-      return 'رسوم امتحانات';
-    case FeeType.inst1:
-      return 'القسط الأول';
-    case FeeType.inst2:
-      return 'القسط الثاني';
-    case FeeType.inst3:
-      return 'القسط الثالث';
+    case FeeType.base: return 'رسوم أساسية';
+    case FeeType.reg: return 'رسوم تسجيل';
+    case FeeType.exam: return 'رسوم امتحانات';
+    case FeeType.inst1: return 'القسط الأول';
+    case FeeType.inst2: return 'القسط الثاني';
+    case FeeType.inst3: return 'القسط الثالث';
   }
 }
 
@@ -56,6 +47,7 @@ class Student {
   String name;
   Stage stage;
   int cls;
+  Gender gender;
   bool hasReg;
   bool hasExam;
   double feeBase;
@@ -73,6 +65,7 @@ class Student {
     required this.name,
     required this.stage,
     required this.cls,
+    this.gender = Gender.boys,
     this.hasReg = false,
     this.hasExam = false,
     this.feeBase = 0,
@@ -86,56 +79,32 @@ class Student {
     this.due3,
   }) : payments = payments ?? [];
 
-  /// إجمالي الرسوم المطلوبة (الأساسية + التسجيل + الامتحانات)
   double get totalRequired => feeBase + feeReg + feeExam;
-
-  /// إجمالي المدفوع
   double get totalPaid => payments.fold(0, (s, p) => s + p.amount);
-
-  /// المتبقي
   double get remaining => totalRequired - totalPaid;
+  double get paidPct => totalRequired > 0 ? (totalPaid / totalRequired).clamp(0.0, 1.0) : 0.0;
 
-  /// نسبة السداد
-  double get paidPct =>
-      totalRequired > 0 ? (totalPaid / totalRequired).clamp(0.0, 1.0) : 0.0;
+  double paidFor(FeeType t) => payments.where((p) => p.type == t).fold(0.0, (s, p) => s + p.amount);
 
-  /// المدفوع لبند معين
-  double paidFor(FeeType t) =>
-      payments.where((p) => p.type == t).fold(0.0, (s, p) => s + p.amount);
-
-  /// المتبقي لبند معين
   double remainingFor(FeeType t) {
     switch (t) {
-      case FeeType.inst1:
-        return (inst1 - paidFor(FeeType.inst1)).clamp(0, double.infinity);
-      case FeeType.inst2:
-        return (inst2 - paidFor(FeeType.inst2)).clamp(0, double.infinity);
-      case FeeType.inst3:
-        return (inst3 - paidFor(FeeType.inst3)).clamp(0, double.infinity);
-      case FeeType.reg:
-        return (feeReg - paidFor(FeeType.reg)).clamp(0, double.infinity);
-      case FeeType.exam:
-        return (feeExam - paidFor(FeeType.exam)).clamp(0, double.infinity);
-      case FeeType.base:
-        return 0;
+      case FeeType.inst1: return (inst1 - paidFor(FeeType.inst1)).clamp(0, double.infinity);
+      case FeeType.inst2: return (inst2 - paidFor(FeeType.inst2)).clamp(0, double.infinity);
+      case FeeType.inst3: return (inst3 - paidFor(FeeType.inst3)).clamp(0, double.infinity);
+      case FeeType.reg: return (feeReg - paidFor(FeeType.reg)).clamp(0, double.infinity);
+      case FeeType.exam: return (feeExam - paidFor(FeeType.exam)).clamp(0, double.infinity);
+      case FeeType.base: return 0;
     }
   }
 
-  /// المطلوب لبند معين
   double amountFor(FeeType t) {
     switch (t) {
-      case FeeType.inst1:
-        return inst1;
-      case FeeType.inst2:
-        return inst2;
-      case FeeType.inst3:
-        return inst3;
-      case FeeType.reg:
-        return feeReg;
-      case FeeType.exam:
-        return feeExam;
-      case FeeType.base:
-        return feeBase;
+      case FeeType.inst1: return inst1;
+      case FeeType.inst2: return inst2;
+      case FeeType.inst3: return inst3;
+      case FeeType.reg: return feeReg;
+      case FeeType.exam: return feeExam;
+      case FeeType.base: return feeBase;
     }
   }
 
@@ -144,6 +113,7 @@ class Student {
         'name': name,
         'stage': stage.index,
         'cls': cls,
+        'gender': gender.index,
         'hasReg': hasReg,
         'hasExam': hasExam,
         'feeBase': feeBase,
@@ -162,6 +132,7 @@ class Student {
         name: j['name'],
         stage: Stage.values[j['stage']],
         cls: j['cls'],
+        gender: Gender.values[j['gender'] ?? 0],
         hasReg: j['hasReg'] ?? false,
         hasExam: j['hasExam'] ?? false,
         feeBase: (j['feeBase'] ?? 0).toDouble(),
@@ -172,8 +143,6 @@ class Student {
         inst3: (j['inst3'] ?? 0).toDouble(),
         due2: j['due2'] != null ? DateTime.parse(j['due2']) : null,
         due3: j['due3'] != null ? DateTime.parse(j['due3']) : null,
-        payments: (j['payments'] as List? ?? [])
-            .map((e) => Payment.fromJson(e))
-            .toList(),
+        payments: (j['payments'] as List? ?? []).map((e) => Payment.fromJson(e)).toList(),
       );
 }
