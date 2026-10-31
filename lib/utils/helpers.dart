@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-
+import 'package:flutter/material.dart';
 /// تنسيق الأرقام بفواصل الآلاف
 final NumberFormat _numFmt = NumberFormat('#,##0', 'en_US');
 final DateFormat _dateFmt = DateFormat('dd/MM/yyyy', 'en_US');
