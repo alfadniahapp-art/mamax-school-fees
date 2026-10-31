@@ -5,6 +5,7 @@ import '../models/payment.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
 import '../widgets/payment_dialog.dart';
+import 'student_form_screen.dart';
 
 class StudentDetailScreen extends StatelessWidget {
   final String studentId;
@@ -18,7 +19,15 @@ class StudentDetailScreen extends StatelessWidget {
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.name)),
+      appBar: AppBar(
+        title: Text(s.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentFormScreen(student: s))),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -40,6 +49,24 @@ class StudentDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   LinearProgressIndicator(value: pct, color: c, minHeight: 8, backgroundColor: Colors.grey.shade200),
+                  
+                  // زر سداد كامل المبلغ
+                  if (s.remaining > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => showPaymentDialog(context, s, presetType: FeeType.inst1, presetAmount: s.remaining),
+                          icon: const Icon(Icons.payment),
+                          label: const Text('سداد كامل المبلغ المتبقي'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.secondary, // لون ذهبي مميز
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
