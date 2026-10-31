@@ -4,6 +4,7 @@ import '../models/student.dart';
 import '../models/payment.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
+import '../utils/receipt_generator.dart';
 import '../widgets/payment_dialog.dart';
 import 'student_form_screen.dart';
 
@@ -19,7 +20,7 @@ class StudentDetailScreen extends StatelessWidget {
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
 
     return Scaffold(
-      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -34,7 +35,6 @@ class StudentDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // البطاقة العلوية (الملف المالي)
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -101,12 +101,17 @@ class StudentDetailScreen extends StatelessWidget {
     final isDone = rem == 0;
     final c = isDone ? AppColors.ok : paid > 0 ? AppColors.partial : AppColors.none;
 
+    // البحث عن آخر دفعة لهذا القسط لطباعة الإيصال
+    final lastPayment = s.payments.where((p) => p.type == type).isNotEmpty 
+        ? s.payments.where((p) => p.type == type).reduce((a, b) => a.date.isAfter(b.date) ? a : b)
+        : null;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface(context), // لون خلفية البطاقة
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder(context), width: 1), // لون حدود الثيم
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Padding(
@@ -135,13 +140,28 @@ class StudentDetailScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('المبلغ الأصلي: ${money(amount)}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
-                if (!isDone)
-                  TextButton.icon(
-                    onPressed: () => showPaymentDialog(context, s, presetType: type, presetAmount: rem),
-                    icon: const Icon(Icons.payment, size: 18),
-                    label: const Text('دفع الآن'),
-                    style: TextButton.styleFrom(foregroundColor: AppColors.primary(context)),
-                  ),
+                Row(
+                  children: [
+                    if (lastPayment != null)
+                      IconButton(
+                        icon: const Icon(Icons.print, color: Colors.blue, size: 20),
+                        tooltip: 'طباعة إيصال آخر دفعة',
+                        onPressed: () => ReceiptGenerator.printReceipt(
+                          student: s,
+                          payment: lastPayment,
+                          settings: context.read<AppProvider>().settings,
+                          remainingAfterPayment: rem,
+                        ),
+                      ),
+                    if (!isDone)
+                      TextButton.icon(
+                        onPressed: () => showPaymentDialog(context, s, presetType: type, presetAmount: rem),
+                        icon: const Icon(Icons.payment, size: 18),
+                        label: const Text('دفع الآن'),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.primary(context)),
+                      ),
+                  ],
+                ),
               ],
             ),
           ],
