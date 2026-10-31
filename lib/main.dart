@@ -35,40 +35,37 @@ class MamaxApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
+      // إجبار الوضع الفاتح دائماً (حتى لو كان الهاتف في الوضع الليلي)
+      themeMode: ThemeMode.light, 
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Tahoma',
         colorScheme: ColorScheme.fromSeed(
           seedColor: themeProvider.primaryColor,
           brightness: Brightness.light,
+          surface: Colors.white,
         ),
+        scaffoldBackgroundColor: themeProvider.derivedBackground,
         appBarTheme: AppBarTheme(
           backgroundColor: themeProvider.primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
         ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        fontFamily: 'Tahoma',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: themeProvider.primaryColor,
-          brightness: Brightness.dark,
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: themeProvider.primaryColor,
-          foregroundColor: Colors.white,
+        cardTheme: CardTheme(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: themeProvider.derivedBorderColor, width: 1),
+          ),
           elevation: 0,
-          centerTitle: true,
         ),
       ),
       builder: (ctx, child) => Directionality(
         textDirection: TextDirection.rtl,
         child: child!,
       ),
-      home: const SplashScreen(), // البداية من شاشة السبلاش
+      home: const SplashScreen(),
     );
   }
 }
