@@ -4,12 +4,13 @@ import '../models/student.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
 import '../widgets/stat_card.dart';
-import 'student_form_screen.dart';
 import 'student_detail_screen.dart';
 import 'settings_screen.dart';
 import 'alerts_screen.dart';
 import 'lock_screen.dart';
 import 'class_management_screen.dart';
+import 'reports_screen.dart';
+import 'student_form_screen.dart'; // استيراد شاشة الطالب الفردي
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,19 +22,27 @@ class _HomeScreenState extends State<HomeScreen> {
   final _searchCtrl = TextEditingController();
   Stage? _stageFilter;
   int? _clsFilter;
+  Gender? _genderFilter;
 
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
-    var list = app.filterStudents(search: _searchCtrl.text.trim(), stage: _stageFilter, cls: _clsFilter);
+    var list = app.students.where((s) {
+      if (_stageFilter != null && s.stage != _stageFilter) return false;
+      if (_clsFilter != null && s.cls != _clsFilter) return false;
+      if (_genderFilter != null && s.gender != _genderFilter) return false;
+      if (_searchCtrl.text.isNotEmpty && !s.name.contains(_searchCtrl.text.trim())) return false;
+      return true;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('رسومك الدراسية'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () {},
+            icon: const Icon(Icons.bar_chart),
+            tooltip: 'التقارير',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
           ),
           IconButton(
             icon: Badge(
@@ -43,10 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AlertsScreen())),
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
-          ),
+          IconButton(icon: const Icon(Icons.settings), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
           IconButton(
             icon: const Icon(Icons.lock_outline),
             onPressed: () {
@@ -78,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
             heroTag: 'student_add',
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {})),
             backgroundColor: AppColors.primary(context),
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.person_add),
             label: const Text('طالب جديد'),
           ),
         ],
@@ -129,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<int?>(
                   value: _clsFilter,
@@ -141,6 +147,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   onChanged: (v) => setState(() => _clsFilter = v),
                 ),
               ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButtonFormField<Gender?>(
+                  value: _genderFilter,
+                  decoration: const InputDecoration(labelText: 'النوع', isDense: true),
+                  items: const [
+                    DropdownMenuItem(value: null, child: Text('الكل')),
+                    DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
+                    DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
+                  ],
+                  onChanged: (v) => setState(() => _genderFilter = v),
+                ),
+              ),
             ],
           ),
         ],
@@ -149,9 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildList(List<Student> list) {
-    if (list.isEmpty) {
-      return const Center(child: Text('لا يوجد طلاب', style: TextStyle(color: Colors.grey)));
-    }
+    if (list.isEmpty) return const Center(child: Text('لا يوجد طلاب', style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: list.length,
@@ -169,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${stageName(s.stage)} - ${classNames[s.cls - 1]}', style: const TextStyle(fontSize: 12)),
+                Text('${stageName(s.stage)} - ${classNames[s.cls - 1]} - ${genderName(s.gender)}', style: const TextStyle(fontSize: 12)),
                 const SizedBox(height: 6),
                 LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade200, minHeight: 6),
               ],
