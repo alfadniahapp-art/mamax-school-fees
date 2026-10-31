@@ -16,7 +16,7 @@ class TreasuryScreen extends StatelessWidget {
     final currentBalance = totalDeposits - totalWithdraws;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
       appBar: AppBar(
         title: const Text('الخزينة والحسابات', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -25,18 +25,19 @@ class TreasuryScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // بطاقة الرصيد الحالي
+          // بطاقة الرصيد الحالي (بتصميم ملكي)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primary(context), AppColors.primary(context).withOpacity(0.8)],
+                colors: [AppColors.primary(context), AppColors.primary(context).withOpacity(0.7)],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
+              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
             ),
             child: Column(
               children: [
@@ -51,18 +52,18 @@ class TreasuryScreen extends StatelessWidget {
           // بطاقات الإجماليات
           Row(
             children: [
-              Expanded(child: _balanceCard('إجمالي الإيداعات', totalDeposits, Icons.arrow_downward, AppColors.ok)),
+              Expanded(child: _balanceCard(context, 'إجمالي الإيداعات', totalDeposits, Icons.arrow_downward, AppColors.ok)),
               const SizedBox(width: 16),
-              Expanded(child: _balanceCard('إجمالي السحوبات', totalWithdraws, Icons.arrow_upward, AppColors.none)),
+              Expanded(child: _balanceCard(context, 'إجمالي السحوبات', totalWithdraws, Icons.arrow_upward, AppColors.none)),
             ],
           ),
           const SizedBox(height: 16),
           
           Row(
             children: [
-              Expanded(child: _balanceCard('رصيد الصندوق', app.cashBalance, Icons.money, Colors.green.shade600)),
+              Expanded(child: _balanceCard(context, 'رصيد الصندوق', app.cashBalance, Icons.money, Colors.green.shade600)),
               const SizedBox(width: 16),
-              Expanded(child: _balanceCard('رصيد البنك', app.bankBalance, Icons.account_balance, Colors.blue.shade600)),
+              Expanded(child: _balanceCard(context, 'رصيد البنك', app.bankBalance, Icons.account_balance, Colors.blue.shade600)),
             ],
           ),
           const SizedBox(height: 24),
@@ -80,7 +81,7 @@ class TreasuryScreen extends StatelessWidget {
           const SizedBox(height: 30),
           
           // سجل العمليات
-          const Text('سجل العمليات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('سجل العمليات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark(context))),
           const SizedBox(height: 12),
           if (app.transactions.isEmpty)
             const Center(child: Text('لا توجد عمليات مالية', style: TextStyle(color: Colors.grey)))
@@ -91,12 +92,13 @@ class TreasuryScreen extends StatelessWidget {
     );
   }
 
-  Widget _balanceCard(String label, double balance, IconData icon, Color color) {
+  Widget _balanceCard(BuildContext context, String label, double balance, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
@@ -145,9 +147,9 @@ class TreasuryScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(16), 
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))]
       ),
       child: ListTile(
@@ -156,7 +158,7 @@ class TreasuryScreen extends StatelessWidget {
           backgroundColor: color.withOpacity(0.1), 
           child: Icon(isDeposit ? Icons.arrow_downward : isWithdraw ? Icons.arrow_upward : Icons.swap_horiz, color: color, size: 20)
         ),
-        title: Text('$label - ${tx.entityName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        title: Text('$label - ${tx.entityName}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark(context))),
         subtitle: Text('${dateStr(tx.date)} • ${tx.method == 'cash' ? 'كاش' : 'بنك'}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -215,7 +217,8 @@ class TreasuryScreen extends StatelessWidget {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) {
-          return Padding(
+          return Container(
+            decoration: BoxDecoration(color: AppColors.bg(context), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 20, right: 20, top: 20),
             child: SingleChildScrollView(
               child: Column(
@@ -223,29 +226,29 @@ class TreasuryScreen extends StatelessWidget {
                 children: [
                   Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
                   const SizedBox(height: 16),
-                  Text(existingTx != null ? 'تعديل العملية' : (type == 'deposit' ? 'إيداع جديد' : type == 'withdraw' ? 'سحب جديد' : 'تحويل جديد'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(existingTx != null ? 'تعديل العملية' : (type == 'deposit' ? 'إيداع جديد' : type == 'withdraw' ? 'سحب جديد' : 'تحويل جديد'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark(context))),
                   const SizedBox(height: 20),
                   
-                  TextField(controller: entityCtrl, decoration: _dialogInputDecoration(type == 'deposit' ? 'اسم المودع' : 'جهة السحب'), keyboardType: TextInputType.text),
+                  TextField(controller: entityCtrl, decoration: _dialogInputDecoration(context, type == 'deposit' ? 'اسم المودع' : 'جهة السحب'), keyboardType: TextInputType.text),
                   const SizedBox(height: 12),
-                  TextField(controller: amountCtrl, decoration: _dialogInputDecoration('المبلغ'), keyboardType: TextInputType.number),
+                  TextField(controller: amountCtrl, decoration: _dialogInputDecoration(context, 'المبلغ'), keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   
                   if (type == 'transfer') ...[
-                    DropdownButtonFormField<String>(value: fromAcc, decoration: _dialogInputDecoration('من حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => fromAcc = v!)),
+                    DropdownButtonFormField<String>(value: fromAcc, decoration: _dialogInputDecoration(context, 'من حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => fromAcc = v!)),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(value: toAcc, decoration: _dialogInputDecoration('إلى حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => toAcc = v!)),
+                    DropdownButtonFormField<String>(value: toAcc, decoration: _dialogInputDecoration(context, 'إلى حساب'), items: const [DropdownMenuItem(value: 'cash', child: Text('الصندوق')), DropdownMenuItem(value: 'bank', child: Text('البنك'))], onChanged: (v) => setState(() => toAcc = v!)),
                   ] else ...[
-                    DropdownButtonFormField<String>(value: method, decoration: _dialogInputDecoration('طريقة الدفع'), items: const [DropdownMenuItem(value: 'cash', child: Text('كاش (صندوق)')), DropdownMenuItem(value: 'bank', child: Text('بنك'))], onChanged: (v) => setState(() => method = v!)),
+                    DropdownButtonFormField<String>(value: method, decoration: _dialogInputDecoration(context, 'طريقة الدفع'), items: const [DropdownMenuItem(value: 'cash', child: Text('كاش (صندوق)')), DropdownMenuItem(value: 'bank', child: Text('بنك'))], onChanged: (v) => setState(() => method = v!)),
                   ],
 
                   if (method == 'bank' && type != 'transfer') ...[
                     const SizedBox(height: 12),
-                    TextField(controller: bankNameCtrl, decoration: _dialogInputDecoration('اسم البنك')),
+                    TextField(controller: bankNameCtrl, decoration: _dialogInputDecoration(context, 'اسم البنك')),
                     const SizedBox(height: 12),
-                    TextField(controller: accHolderCtrl, decoration: _dialogInputDecoration('اسم صاحب الحساب')),
+                    TextField(controller: accHolderCtrl, decoration: _dialogInputDecoration(context, 'اسم صاحب الحساب')),
                     const SizedBox(height: 12),
-                    TextField(controller: refCtrl, decoration: _dialogInputDecoration('رقم العملية / الإيصال')),
+                    TextField(controller: refCtrl, decoration: _dialogInputDecoration(context, 'رقم العملية / الإيصال')),
                   ],
                   
                   const SizedBox(height: 24),
@@ -296,11 +299,11 @@ class TreasuryScreen extends StatelessWidget {
     );
   }
 
-  InputDecoration _dialogInputDecoration(String label) {
+  InputDecoration _dialogInputDecoration(BuildContext context, String label) {
     return InputDecoration(
       labelText: label,
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surface(context),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
     );
   }
