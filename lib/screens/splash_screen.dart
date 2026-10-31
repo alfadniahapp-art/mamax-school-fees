@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
 import 'lock_screen.dart';
 
@@ -13,7 +15,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // الانتقال لشاشة القفل بعد 3 ثوانٍ
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
@@ -24,8 +25,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final app = context.watch<AppProvider>();
+    final schoolName = app.settings.schoolName;
+    final accountantName = app.settings.accountantName;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F766E), // اللون الزمردي الأساسي
+      backgroundColor: const Color(0xFF0F766E),
       body: SafeArea(
         child: Column(
           children: [
@@ -48,39 +53,47 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
-                  // قراءة الأيقونة من مجلد assets
                   child: Image.asset(
-                    'assets/icon.png',
+                    'logo.png',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      // في حال عدم وجود الصورة، تظهر أيقونة افتراضية
                       return const Icon(Icons.school, size: 80, color: Color(0xFF0F766E));
                     },
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            // اسم التطبيق
-            const Text(
-              'رسومك الدراسية',
-              style: TextStyle(
-                fontSize: 28,
+            const SizedBox(height: 30),
+            
+            // اسم المدرسة (كبير جداً)
+            Text(
+              schoolName,
+              style: const TextStyle(
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                letterSpacing: 1.5,
+                letterSpacing: 1.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            
+            // اسم المحاسب
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'المحاسب: $accountantName',
+                style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'نظام إدارة الرسوم والطلاب',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
-            ),
+            
             const Spacer(),
-            // بيانات المطور
+            
+            // معلومات المطور
             const Padding(
               padding: EdgeInsets.only(bottom: 20),
               child: Column(
