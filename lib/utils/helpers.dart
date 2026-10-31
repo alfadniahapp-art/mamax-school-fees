@@ -11,17 +11,20 @@ String dateStr(DateTime? d) => d == null ? '—' : _dateFmt.format(d);
 class ThemeProvider extends ChangeNotifier {
   Color _primaryColor = const Color(0xFF0B4A3D); 
   Color _cardBorderColor = const Color(0xFFD97706); 
-  Color _inputBorderColor = const Color(0xFFD97706); // لون ذهبي صريح للحقول
+  Color _inputBorderColor = const Color(0xFFD97706); 
+  Color _chipBorderColor = const Color(0xFFD97706); // لون حدود أزرار الاختيار
   Color _cardBgColor = Colors.white;
 
   Color get primaryColor => _primaryColor;
   Color get cardBorderColor => _cardBorderColor;
   Color get inputBorderColor => _inputBorderColor;
+  Color get chipBorderColor => _chipBorderColor;
   Color get cardBgColor => _cardBgColor;
 
   void changePrimaryColor(Color color) { _primaryColor = color; notifyListeners(); }
   void changeCardBorderColor(Color color) { _cardBorderColor = color; notifyListeners(); }
   void changeInputBorderColor(Color color) { _inputBorderColor = color; notifyListeners(); }
+  void changeChipBorderColor(Color color) { _chipBorderColor = color; notifyListeners(); }
   void changeCardBgColor(Color color) { _cardBgColor = color; notifyListeners(); }
 }
 
@@ -43,7 +46,12 @@ class AppColors {
 
   static Color inputBorder(BuildContext context) {
     final themeProv = Provider.of<ThemeProvider>(context, listen: false);
-    return themeProv.inputBorderColor; // ترجع اللون الذهبي الصريح
+    return themeProv.inputBorderColor;
+  }
+
+  static Color chipBorder(BuildContext context) {
+    final themeProv = Provider.of<ThemeProvider>(context, listen: false);
+    return themeProv.chipBorderColor;
   }
       
   static Color textDark(BuildContext context) => const Color(0xFF0F172A);
