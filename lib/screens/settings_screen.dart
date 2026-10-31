@@ -56,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeProv = context.watch<ThemeProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.bg(context), // لون الخلفية الملكي
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         title: const Text('الإعدادات', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -65,14 +65,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // بيانات المدرسة والمحاسب
           _buildCard('بيانات المدرسة والمحاسب', [
             TextField(controller: _schoolNameCtrl, decoration: _inputDecoration('اسم المدرسة')),
             const SizedBox(height: 12),
             TextField(controller: _accountantNameCtrl, decoration: _inputDecoration('اسم المحاسب')),
           ]),
           
-          // النسخ الاحتياطي
           _buildCard('النسخ الاحتياطي', [
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -96,7 +94,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ]),
 
-          // المظهر والألوان
           _buildCard('المظهر والألوان', [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -119,7 +116,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            // هذا هو الجزء الذي كان مفقوداً (نمط الخلفية)
             const Text('نمط الخلفية (ملكي):', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 8),
             Row(
@@ -133,7 +129,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ]),
 
-          // نسب الأقساط
           _buildCard('نسب الأقساط الافتراضية', [
             Row(
               children: [
@@ -146,12 +141,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ]),
 
-          // التنبيهات
           _buildCard('إعدادات التنبيهات', [
             TextField(controller: _warnDays, keyboardType: TextInputType.number, decoration: _inputDecoration('التنبيه قبل الاستحقاق (أيام)')),
           ]),
 
-          // بيانات البنك
           _buildCard('بيانات البنك', [
             TextField(controller: _bankNameCtrl, decoration: _inputDecoration('اسم البنك')),
             const SizedBox(height: 12),
@@ -164,7 +157,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 30),
           
-          // زر الحفظ
           SizedBox(
             height: 55,
             child: ElevatedButton.icon(
@@ -186,7 +178,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // دالة إنشاء أزرار نمط الخلفية
   Widget _bgStyleChip(String label, String value, ThemeProvider themeProv) {
     final isActive = themeProv.bgStyle == value;
     return Expanded(
