@@ -66,9 +66,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _buildCard('بيانات المدرسة والمحاسب', [
-            TextField(controller: _schoolNameCtrl, decoration: _inputDecoration('اسم المدرسة')),
+            TextField(controller: _schoolNameCtrl, decoration: _inputDecoration(context, 'اسم المدرسة')),
             const SizedBox(height: 12),
-            TextField(controller: _accountantNameCtrl, decoration: _inputDecoration('اسم المحاسب')),
+            TextField(controller: _accountantNameCtrl, decoration: _inputDecoration(context, 'اسم المحاسب')),
           ]),
           
           _buildCard('النسخ الاحتياطي', [
@@ -95,6 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           _buildCard('المظهر والألوان', [
+            // اللون الأساسي
             const Text('اللون الأساسي للتطبيق:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -115,26 +116,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _colorDot(const Color(0xFFE2E8F0), themeProv, 'border'),
-                _colorDot(const Color(0xFFD97706), themeProv, 'border'),
-                _colorDot(const Color(0xFF0F766E), themeProv, 'border'),
-                _colorDot(const Color(0xFF2563EB), themeProv, 'border'),
-                _pickColorBtn(context, themeProv, 'border'),
+                _colorDot(const Color(0xFFE2E8F0), themeProv, 'cardBorder'),
+                _colorDot(const Color(0xFFD97706), themeProv, 'cardBorder'),
+                _colorDot(const Color(0xFF0F766E), themeProv, 'cardBorder'),
+                _colorDot(const Color(0xFF2563EB), themeProv, 'cardBorder'),
+                _pickColorBtn(context, themeProv, 'cardBorder'),
               ],
             ),
             const Divider(height: 30),
-            
-            // خلفية البطاقات
-            const Text('خلفية البطاقات (لون خفيف جداً):', style: TextStyle(fontSize: 13, color: Colors.grey)),
+
+            // لون حدود مربعات الإدخال
+            const Text('لون حدود مربعات الإدخال:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _colorDot(Colors.white, themeProv, 'bg'),
-                _colorDot(const Color(0xFFE0F2F1), themeProv, 'bg'), // أخضر فاتح
-                _colorDot(const Color(0xFFE3F2FD), themeProv, 'bg'), // أزرق فاتح
-                _colorDot(const Color(0xFFF3E5F5), themeProv, 'bg'), // بنفسجي فاتح
-                _pickColorBtn(context, themeProv, 'bg'),
+                _colorDot(const Color(0xFFE2E8F0), themeProv, 'inputBorder'),
+                _colorDot(const Color(0xFFD97706), themeProv, 'inputBorder'),
+                _colorDot(const Color(0xFF0F766E), themeProv, 'inputBorder'),
+                _colorDot(const Color(0xFF2563EB), themeProv, 'inputBorder'),
+                _pickColorBtn(context, themeProv, 'inputBorder'),
+              ],
+            ),
+            const Divider(height: 30),
+
+            // لون حدود أزرار الاختيار
+            const Text('لون حدود أزرار الاختيار:', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _colorDot(const Color(0xFFE2E8F0), themeProv, 'chipBorder'),
+                _colorDot(const Color(0xFFD97706), themeProv, 'chipBorder'),
+                _colorDot(const Color(0xFF0F766E), themeProv, 'chipBorder'),
+                _colorDot(const Color(0xFF2563EB), themeProv, 'chipBorder'),
+                _pickColorBtn(context, themeProv, 'chipBorder'),
               ],
             ),
           ]),
@@ -142,27 +158,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildCard('نسب الأقساط الافتراضية', [
             Row(
               children: [
-                Expanded(child: TextField(controller: _pctA, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط أول %'))),
+                Expanded(child: TextField(controller: _pctA, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قسط أول %'))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _pctB, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط ثاني %'))),
+                Expanded(child: TextField(controller: _pctB, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قسط ثاني %'))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _pctC, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط أخير %'))),
+                Expanded(child: TextField(controller: _pctC, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قسط أخير %'))),
               ],
             ),
           ]),
 
           _buildCard('إعدادات التنبيهات', [
-            TextField(controller: _warnDays, keyboardType: TextInputType.number, decoration: _inputDecoration('التنبيه قبل الاستحقاق (أيام)')),
+            TextField(controller: _warnDays, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'التنبيه قبل الاستحقاق (أيام)')),
           ]),
 
           _buildCard('بيانات البنك', [
-            TextField(controller: _bankNameCtrl, decoration: _inputDecoration('اسم البنك')),
+            TextField(controller: _bankNameCtrl, decoration: _inputDecoration(context, 'اسم البنك')),
             const SizedBox(height: 12),
-            TextField(controller: _bankName, decoration: _inputDecoration('اسم صاحب الحساب')),
+            TextField(controller: _bankName, decoration: _inputDecoration(context, 'اسم صاحب الحساب')),
             const SizedBox(height: 12),
-            TextField(controller: _bankAcc, decoration: _inputDecoration('رقم الحساب')),
+            TextField(controller: _bankAcc, decoration: _inputDecoration(context, 'رقم الحساب')),
             const SizedBox(height: 12),
-            TextField(controller: _bankPhone, decoration: _inputDecoration('رقم الهاتف')),
+            TextField(controller: _bankPhone, decoration: _inputDecoration(context, 'رقم الهاتف')),
           ]),
 
           const SizedBox(height: 30),
@@ -216,10 +232,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     if (selected != null) {
-      if (type == 'border') {
+      if (type == 'cardBorder') {
         themeProv.changeCardBorderColor(selected.withOpacity(0.6));
-      } else {
-        themeProv.changeCardBgColor(selected);
+      } else if (type == 'inputBorder') {
+        themeProv.changeInputBorderColor(selected);
+      } else if (type == 'chipBorder') {
+        themeProv.changeChipBorderColor(selected);
       }
     }
   }
@@ -239,12 +257,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
+  InputDecoration _inputDecoration(BuildContext context, String label) {
     return InputDecoration(
       labelText: label,
       filled: true,
       fillColor: AppColors.surface(context),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.primary(context), width: 2),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
@@ -256,19 +281,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (type == 'primary') {
       currentColor = themeProv.primaryColor;
       isSelected = currentColor == color;
-    } else if (type == 'border') {
+    } else if (type == 'cardBorder') {
       currentColor = themeProv.cardBorderColor;
       isSelected = currentColor.withOpacity(0.6) == color.withOpacity(0.6);
+    } else if (type == 'inputBorder') {
+      currentColor = themeProv.inputBorderColor;
+      isSelected = currentColor == color;
     } else {
-      currentColor = themeProv.cardBgColor;
+      currentColor = themeProv.chipBorderColor;
       isSelected = currentColor == color;
     }
 
     return GestureDetector(
       onTap: () {
         if (type == 'primary') themeProv.changePrimaryColor(color);
-        else if (type == 'border') themeProv.changeCardBorderColor(color);
-        else themeProv.changeCardBgColor(color);
+        else if (type == 'cardBorder') themeProv.changeCardBorderColor(color);
+        else if (type == 'inputBorder') themeProv.changeInputBorderColor(color);
+        else themeProv.changeChipBorderColor(color);
       },
       child: Container(
         width: 45, height: 45,
