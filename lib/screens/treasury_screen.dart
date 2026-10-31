@@ -16,7 +16,7 @@ class TreasuryScreen extends StatelessWidget {
     final currentBalance = totalDeposits - totalWithdraws;
 
     return Scaffold(
-      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         title: const Text('الخزينة والحسابات', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -25,7 +25,6 @@ class TreasuryScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // بطاقة الرصيد الحالي (بتصميم ملكي)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -37,7 +36,7 @@ class TreasuryScreen extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
-              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+              border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
             ),
             child: Column(
               children: [
@@ -49,7 +48,6 @@ class TreasuryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           
-          // بطاقات الإجماليات
           Row(
             children: [
               Expanded(child: _balanceCard(context, 'إجمالي الإيداعات', totalDeposits, Icons.arrow_downward, AppColors.ok)),
@@ -68,7 +66,6 @@ class TreasuryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           
-          // أزرار العمليات
           Row(
             children: [
               Expanded(child: _actionBtn('إيداع', Icons.add_circle, Colors.green.shade600, () => _showTransactionDialog(context, 'deposit'))),
@@ -80,7 +77,6 @@ class TreasuryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
           
-          // سجل العمليات
           Text('سجل العمليات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark(context))),
           const SizedBox(height: 12),
           if (app.transactions.isEmpty)
@@ -98,7 +94,7 @@ class TreasuryScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
@@ -149,7 +145,7 @@ class TreasuryScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(16), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))]
       ),
       child: ListTile(
@@ -304,7 +300,14 @@ class TreasuryScreen extends StatelessWidget {
       labelText: label,
       filled: true,
       fillColor: AppColors.surface(context),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // الحدود الملونة هنا
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.primary(context), width: 2),
+      ),
     );
   }
 }
