@@ -37,14 +37,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
         build: (ctx) => [
           pw.Header(
             level: 0,
-            child: pw.Text(_reportType == 'students' ? 'تقرير رسوم الطلاب' : 'تقرير الخزينة والحسابات', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+            child: pw.Text(
+              _reportType == 'students' ? 'تقرير رسوم الطلاب' : 'تقرير الخزينة والحسابات', 
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              textDirection: pw.TextDirection.rtl,
+            ),
           ),
           pw.SizedBox(height: 10),
           if (_reportType == 'students')
             pw.TableHelper.fromTextArray(
               cellAlignments: {
-                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.center,
-                3: pw.Alignment.center, 4: pw.Alignment.center, 5: pw.Alignment.center, 6: pw.Alignment.center,
+                0: pw.Alignment.centerRight,
+                1: pw.Alignment.center,
+                2: pw.Alignment.center,
+                3: pw.Alignment.center,
+                4: pw.Alignment.center,
+                5: pw.Alignment.center,
+                6: pw.Alignment.center,
               },
               headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
               data: data.map<List<String>>((dynamic s) {
@@ -57,8 +66,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
           else
             pw.TableHelper.fromTextArray(
               cellAlignments: {
-                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.centerRight,
-                3: pw.Alignment.center, 4: pw.Alignment.center,
+                0: pw.Alignment.centerRight,
+                1: pw.Alignment.center,
+                2: pw.Alignment.centerRight,
+                3: pw.Alignment.center,
+                4: pw.Alignment.center,
               },
               headers: ['التاريخ', 'النوع', 'الجهة', 'طريقة الدفع', 'المبلغ'],
               data: data.map<List<String>>((dynamic t) {
@@ -115,9 +127,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('التقارير والإحصائيات'),
+        title: const Text('التقارير والإحصائيات', style: TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
@@ -132,7 +146,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           _reportType == 'students' ? _buildStudentFilters() : _buildTreasuryFilters(),
           Expanded(
             child: reportData.isEmpty
-                ? const Center(child: Text('لا توجد بيانات مطابقة', style: TextStyle(color: Colors.grey)))
+                ? const Center(child: Text('لا توجد بيانات مطابقة', style: TextStyle(color: Colors.grey, fontSize: 16)))
                 : ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
@@ -156,7 +170,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _buildReportTypeSelector() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      color: Colors.white,
       child: Row(
         children: [
           Expanded(
@@ -164,7 +178,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
               onPressed: () => setState(() => _reportType = 'students'),
               icon: const Icon(Icons.people),
               label: const Text('تقارير الطلاب'),
-              style: ElevatedButton.styleFrom(backgroundColor: _reportType == 'students' ? AppColors.primary(context) : Colors.grey.shade200, foregroundColor: _reportType == 'students' ? Colors.white : Colors.black87),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _reportType == 'students' ? AppColors.primary(context) : Colors.grey.shade100,
+                foregroundColor: _reportType == 'students' ? Colors.white : Colors.black87,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -173,7 +192,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
               onPressed: () => setState(() => _reportType = 'treasury'),
               icon: const Icon(Icons.account_balance_wallet),
               label: const Text('تقارير الخزينة'),
-              style: ElevatedButton.styleFrom(backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : Colors.grey.shade200, foregroundColor: _reportType == 'treasury' ? Colors.white : Colors.black87),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _reportType == 'treasury' ? AppColors.primary(context) : Colors.grey.shade100,
+                foregroundColor: _reportType == 'treasury' ? Colors.white : Colors.black87,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
           ),
         ],
@@ -193,32 +217,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
           Row(
             children: [
               _chip('الكل', 'all', true),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chip('مرحلة', 'stage', true),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chip('قسم', 'gender', true),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chip('فصل', 'class', true),
             ],
           ),
           const SizedBox(height: 12),
           if (_scope == 'stage' || _scope == 'class')
-            DropdownButtonFormField<Stage>(value: _selectedStage, decoration: const InputDecoration(labelText: 'المرحلة', isDense: true), items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(), onChanged: (v) => setState(() => _selectedStage = v!)),
+            DropdownButtonFormField<Stage>(value: _selectedStage, decoration: _inputDecoration('المرحلة'), items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(), onChanged: (v) => setState(() => _selectedStage = v!)),
           if (_scope == 'gender')
-            DropdownButtonFormField<Gender>(value: _selectedGender, decoration: const InputDecoration(labelText: 'القسم', isDense: true), items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))], onChanged: (v) => setState(() => _selectedGender = v!)),
+            DropdownButtonFormField<Gender>(value: _selectedGender, decoration: _inputDecoration('القسم'), items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))], onChanged: (v) => setState(() => _selectedGender = v!)),
           if (_scope == 'class')
-            DropdownButtonFormField<int>(value: _selectedClass, decoration: const InputDecoration(labelText: 'الصف', isDense: true), items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))).toList(), onChanged: (v) => setState(() => _selectedClass = v!)),
+            DropdownButtonFormField<int>(value: _selectedClass, decoration: _inputDecoration('الصف'), items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))).toList(), onChanged: (v) => setState(() => _selectedClass = v!)),
           const Divider(height: 24),
           const Text('حالة السداد:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
               _chip('الكل', 'all_status', false),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chip('مكتمل', 'paid', false),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chip('جزئي', 'partial', false),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chip('لم يدفع', 'unpaid', false),
             ],
           ),
@@ -239,16 +263,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
           Row(
             children: [
               _chipTreasury('الكل', 'all'),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chipTreasury('إيداعات', 'deposit'),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chipTreasury('سحوبات', 'withdraw'),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               _chipTreasury('تحويلات', 'transfer'),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      isDense: true,
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     );
   }
 
@@ -261,9 +296,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
           else _paymentStatus = value == 'all_status' ? 'all' : value;
         }),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-          child: Center(child: Text(label, style: TextStyle(fontSize: 11, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : Colors.grey.shade100, 
+            borderRadius: BorderRadius.circular(10)
+          ),
+          child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
         ),
       ),
     );
@@ -275,9 +313,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _treasuryType = value),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(color: isActive ? AppColors.secondary : Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-          child: Center(child: Text(label, style: TextStyle(fontSize: 11, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.secondary : Colors.grey.shade100, 
+            borderRadius: BorderRadius.circular(10)
+          ),
+          child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
         ),
       ),
     );
@@ -299,15 +340,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _summaryCard(String l1, String v1, String l2, String v2, String l3, String v3, String l4, String v4) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [_sumItem(l1, v1, Colors.blueGrey), _sumItem(l2, v2, Colors.blueGrey)],
           ),
-          const Divider(height: 24),
+          const Divider(height: 30),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [_sumItem(l3, v3, AppColors.ok), _sumItem(l4, v4, AppColors.none)],
@@ -321,26 +362,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Column(
       children: [
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+        const SizedBox(height: 4),
+        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
       ],
     );
   }
 
   Widget _buildStudentTable(List<Student> list) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
           headingRowColor: MaterialStateProperty.all(AppColors.primary(context).withOpacity(0.1)),
           columns: const [
-            DataColumn(label: Text('الطالب')),
-            DataColumn(label: Text('الفصل')),
-            DataColumn(label: Text('القسم')),
-            DataColumn(label: Text('المطلوب')),
-            DataColumn(label: Text('المدفوع')),
-            DataColumn(label: Text('المتبقي')),
-            DataColumn(label: Text('الحالة')),
+            DataColumn(label: Text('الطالب', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('الفصل', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('القسم', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('المطلوب', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('المدفوع', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('المتبقي', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('الحالة', style: TextStyle(fontWeight: FontWeight.bold))),
           ],
           rows: list.map((s) {
             final pct = s.paidPct;
@@ -355,8 +397,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
               DataCell(Text(classNames[s.cls - 1])),
               DataCell(Text(genderName(s.gender))),
               DataCell(Text(money(s.totalRequired))),
-              DataCell(Text(money(s.totalPaid), style: const TextStyle(color: AppColors.ok))),
-              DataCell(Text(money(s.remaining), style: const TextStyle(color: AppColors.none))),
+              DataCell(Text(money(s.totalPaid), style: const TextStyle(color: AppColors.ok, fontWeight: FontWeight.bold))),
+              DataCell(Text(money(s.remaining), style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold))),
               DataCell(Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
@@ -371,17 +413,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildTreasuryTable(List<FinancialTransaction> list) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
           headingRowColor: MaterialStateProperty.all(AppColors.primary(context).withOpacity(0.1)),
           columns: const [
-            DataColumn(label: Text('التاريخ')),
-            DataColumn(label: Text('النوع')),
-            DataColumn(label: Text('الجهة')),
-            DataColumn(label: Text('طريقة الدفع')),
-            DataColumn(label: Text('المبلغ')),
+            DataColumn(label: Text('التاريخ', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('النوع', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('الجهة', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('طريقة الدفع', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('المبلغ', style: TextStyle(fontWeight: FontWeight.bold))),
           ],
           rows: list.map((tx) {
             final isDeposit = tx.type == 'deposit';
@@ -403,7 +445,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 }
 
-// شاشة المعاينة المخصصة
 class _PdfPreviewDialog extends StatefulWidget {
   final List<dynamic> data;
   final String reportType;
