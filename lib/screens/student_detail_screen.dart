@@ -19,7 +19,7 @@ class StudentDetailScreen extends StatelessWidget {
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
       appBar: AppBar(
         title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -34,13 +34,14 @@ class StudentDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // البطاقة العلوية
+          // البطاقة العلوية (الملف المالي)
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: [c.withOpacity(0.9), c], begin: Alignment.topRight, end: Alignment.bottomLeft),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [BoxShadow(color: c.withOpacity(0.4), blurRadius: 15, offset: const Offset(0, 8))],
+              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
             ),
             child: Column(
               children: [
@@ -71,7 +72,7 @@ class StudentDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text('سجل الأقساط والرسوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('سجل الأقساط والرسوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark(context))),
           const SizedBox(height: 12),
           
           if (s.hasReg) _buildInstCard(context, s, FeeType.reg, 'رسوم التسجيل', s.feeReg),
@@ -103,10 +104,10 @@ class StudentDetailScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))],
+        color: AppColors.surface(context), // لون خلفية البطاقة
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1), // لون حدود الثيم
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -119,7 +120,7 @@ class StudentDetailScreen extends StatelessWidget {
                   children: [
                     Icon(isDone ? Icons.check_circle : Icons.circle_outlined, color: c, size: 22),
                     const SizedBox(width: 8),
-                    Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark(context))),
                   ],
                 ),
                 Container(
