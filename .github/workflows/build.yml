@@ -3,8 +3,6 @@ name: Build Flutter APK
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -34,22 +32,23 @@ jobs:
           flutter create temp_app --project-name mamax_school_fees --platforms android
           cp -r temp_app/android ./
           rm -rf temp_app
-          
-          # تعديل اسم التطبيق
           sed -i 's/android:label="mamax_school_fees"/android:label="رسومك الدراسية"/g' android/app/src/main/AndroidManifest.xml
-          
-          # إضافة الصلاحيات
           sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
-          
-          # تحديث إعدادات Android
           sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
 
       - name: 📦 Install Dependencies
         run: flutter pub get
 
-      - name: 🔨 Build APK
-        run: flutter build apk --release
+      - name: 🔨 Build APK (إظهار الخطأ الحقيقي)
+        run: |
+          flutter build apk --release > build_log.txt 2>&1 || true
+          if grep -q "FAILURE" build_log.txt; then
+            echo "================= الخطأ الحقيقي =================="
+            grep -A 10 "FAILURE" build_log.txt
+            echo "==================================================="
+            exit 1
+          fi
 
       - name: 📤 Upload APK
         uses: actions/upload-artifact@v4
