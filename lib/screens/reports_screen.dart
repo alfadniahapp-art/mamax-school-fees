@@ -176,7 +176,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: AppColors.cardBorder(context), width: 1.5), // إضافة الحدود هنا
+                  side: BorderSide(color: AppColors.cardBorder(context), width: 1.5),
                 ),
               ),
             ),
@@ -193,7 +193,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: AppColors.cardBorder(context), width: 1.5), // إضافة الحدود هنا
+                  side: BorderSide(color: AppColors.cardBorder(context), width: 1.5),
                 ),
               ),
             ),
@@ -282,7 +282,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       fillColor: AppColors.bg(context),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // لون حدود الحقول
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -292,7 +292,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // تم تعديل الأزرار لتأخذ حدوداً بلون البطاقات
   Widget _chip(String label, String value, bool isScope) {
     final isActive = isScope ? _scope == value : _paymentStatus == value;
     return Expanded(
@@ -304,9 +303,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : AppColors.surface(context), // لون الخلفية
+            color: isActive ? (isScope ? AppColors.primary(context) : AppColors.secondary) : AppColors.surface(context),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isActive ? Colors.transparent : AppColors.cardBorder(context), width: 1.5), // الحدود هنا
+            border: Border.all(color: isActive ? Colors.transparent : AppColors.cardBorder(context), width: 1.5),
           ),
           child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
         ),
@@ -324,7 +323,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           decoration: BoxDecoration(
             color: isActive ? AppColors.secondary : AppColors.surface(context),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isActive ? Colors.transparent : AppColors.cardBorder(context), width: 1.5), // الحدود هنا
+            border: Border.all(color: isActive ? Colors.transparent : AppColors.cardBorder(context), width: 1.5),
           ),
           child: Center(child: Text(label, style: TextStyle(fontSize: 12, color: isActive ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
         ),
@@ -526,7 +525,3 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
     );
   }
 }
-
-
-
-
