@@ -29,6 +29,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _generatePdf(List<dynamic> data) async {
     final pdf = pw.Document();
+    // تحميل الخط العربي من الإنترنت (يحل مشكلة المربعات)
     final font = await PdfGoogleFonts.cairoRegular();
     final fontBold = await PdfGoogleFonts.cairoBold();
 
@@ -71,7 +72,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
     );
 
-    // معاينة مع إمكانية التكبير والتصغير
+    // عرض المعاينة مع إمكانية التكبير والتصغير التلقائية
     await Printing.layoutPdf(
       onLayout: (format) => pdf.save(),
       name: 'report_${DateTime.now().millisecondsSinceEpoch}.pdf',
