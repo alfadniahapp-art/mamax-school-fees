@@ -10,37 +10,27 @@ String dateStr(DateTime? d) => d == null ? '—' : _dateFmt.format(d);
 
 class ThemeProvider extends ChangeNotifier {
   Color _primaryColor = const Color(0xFF0B4A3D); 
-  Color _cardBorderColor = const Color(0xFF0B4A3D).withOpacity(0.25);
-  Color _cardBgColor = Colors.white; // لون خلفية البطاقة الافتراضي
+  Color _cardBorderColor = const Color(0xFFD97706).withOpacity(0.6);
+  Color _inputBorderColor = const Color(0xFFE2E8F0); // لون حدود الحقول
+  Color _cardBgColor = Colors.white;
 
   Color get primaryColor => _primaryColor;
   Color get cardBorderColor => _cardBorderColor;
+  Color get inputBorderColor => _inputBorderColor;
   Color get cardBgColor => _cardBgColor;
 
-  void changePrimaryColor(Color color) { 
-    _primaryColor = color; 
-    notifyListeners(); 
-  }
-
-  void changeCardBorderColor(Color color) {
-    _cardBorderColor = color;
-    notifyListeners();
-  }
-
-  void changeCardBgColor(Color color) {
-    _cardBgColor = color;
-    notifyListeners();
-  }
+  void changePrimaryColor(Color color) { _primaryColor = color; notifyListeners(); }
+  void changeCardBorderColor(Color color) { _cardBorderColor = color; notifyListeners(); }
+  void changeInputBorderColor(Color color) { _inputBorderColor = color; notifyListeners(); }
+  void changeCardBgColor(Color color) { _cardBgColor = color; notifyListeners(); }
 }
 
 class AppColors {
   static Color primary(BuildContext context) => Theme.of(context).colorScheme.primary;
   static Color bg(BuildContext context) => const Color(0xFFF8FAFC);
   
-  // خلفية البطاقة تأخذ اللون المختار، لكن بشفافية عالية لضمان بقاء النص مقروءاً
   static Color surface(BuildContext context) {
     final themeProv = Provider.of<ThemeProvider>(context, listen: false);
-    // إذا كان اللون أبيض نتركه أبيض، وإلا نطبق عليه شفافية 85% ليكون لوناً فاتحاً جداً
     return themeProv.cardBgColor == Colors.white 
         ? Colors.white 
         : Color.alphaBlend(themeProv.cardBgColor.withOpacity(0.08), Colors.white);
@@ -49,6 +39,11 @@ class AppColors {
   static Color cardBorder(BuildContext context) {
     final themeProv = Provider.of<ThemeProvider>(context, listen: false);
     return themeProv.cardBorderColor;
+  }
+
+  static Color inputBorder(BuildContext context) {
+    final themeProv = Provider.of<ThemeProvider>(context, listen: false);
+    return themeProv.inputBorderColor;
   }
       
   static Color textDark(BuildContext context) => const Color(0xFF0F172A);
