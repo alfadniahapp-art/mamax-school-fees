@@ -71,25 +71,75 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton.extended(
-            heroTag: 'report',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClassManagementScreen())).then((_) => setState(() {})),
-            backgroundColor: const Color(0xFFD97706),
-            icon: const Icon(Icons.group_add),
-            label: const Text('إدارة الفصول'),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildActionBtn('تسجيل دفعة', Icons.payment, const Color(0xFF10B981), () => _showQuickPayment(context, app)),
+            _buildActionBtn('إضافة طالب', Icons.person_add, AppColors.primary(context), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {}))),
+            _buildActionBtn('إدارة الفصول', Icons.group, const Color(0xFFD97706), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClassManagementScreen())).then((_) => setState(() {}))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionBtn(String label, IconData icon, Color color, VoidCallback onTap) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ElevatedButton(
+          onPressed: onTap,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 4,
           ),
-          const SizedBox(height: 12),
-          FloatingActionButton.extended(
-            heroTag: 'add',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {})),
-            backgroundColor: AppColors.primary(context),
-            icon: const Icon(Icons.person_add),
-            label: const Text('طالب جديد'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(height: 4),
+              Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  void _showQuickPayment(BuildContext context, AppProvider app) {
+    if (app.students.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أضف طالباً أولاً')));
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('تسجيل دفعة سريعة'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: ListView.builder(
+            itemCount: app.students.length,
+            itemBuilder: (_, i) {
+              final s = app.students[i];
+              return ListTile(
+                title: Text(s.name),
+                subtitle: Text('${stageName(s.stage)} - ${classNames[s.cls - 1]}'),
+                trailing: Text(money(s.remaining), style: const TextStyle(color: AppColors.none)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id)));
+                },
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -141,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TextField(
             controller: _searchCtrl,
             decoration: InputDecoration(
-              hintText: 'بحث بالاسم أو رقم الهاتف...',
+              hintText: 'بحث بالاسم...',
               prefixIcon: const Icon(Icons.search),
               filled: true,
               fillColor: Colors.grey.shade50,
