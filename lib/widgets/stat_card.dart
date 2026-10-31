@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/helpers.dart';
 
 class StatCard extends StatelessWidget {
   final String label;
@@ -103,7 +102,6 @@ class StatCard extends StatelessWidget {
   }
 }
 
-/// شبكة بطاقات إحصائية جاهزة
 class StatsGrid extends StatelessWidget {
   final List<StatCard> cards;
   const StatsGrid({super.key, required this.cards});
