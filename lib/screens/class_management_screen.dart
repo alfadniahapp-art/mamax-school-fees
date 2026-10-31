@@ -25,7 +25,6 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
   DateTime? _due2;
   DateTime? _due3;
   
-  // خيارات تحديد نوع الرسوم
   bool _includeReg = false;
   bool _includeExam = false;
 
@@ -98,16 +97,18 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      appBar: AppBar(title: const Text('إدارة وتسجيل الفصول')),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('إدارة وتسجيل الفصول', style: TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // جدول تحديد الرسوم
           _buildFeesTable(context),
-          const SizedBox(height: 16),
-
-          // 1. تحديد الفصل
+          const SizedBox(height: 20),
+          
           _buildCard(
             title: '1. تحديد الفصل والنوع',
             icon: Icons.group,
@@ -116,7 +117,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                 Expanded(
                   child: DropdownButtonFormField<Stage>(
                     value: _selectedStage,
-                    decoration: const InputDecoration(labelText: 'المرحلة', filled: true, fillColor: Colors.white),
+                    decoration: _inputDecoration('المرحلة'),
                     items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
                     onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; _loadClassFee(); }),
                   ),
@@ -125,46 +126,44 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     value: _selectedClass,
-                    decoration: const InputDecoration(labelText: 'الصف', filled: true, fillColor: Colors.white),
+                    decoration: _inputDecoration('الصف'),
                     items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
                     onChanged: (v) => setState(() => _selectedClass = v!),
                   ),
                 ),
               ]),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               DropdownButtonFormField<Gender>(
                 value: _selectedGender,
-                decoration: const InputDecoration(labelText: 'النوع', filled: true, fillColor: Colors.white),
+                decoration: _inputDecoration('النوع'),
                 items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))],
                 onChanged: (v) => setState(() => _selectedGender = v!),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           
-          // 2. الرسوم
           _buildCard(
             title: '2. رسوم الفصل وتوزيع الأقساط',
             icon: Icons.payments,
             children: [
-              TextField(controller: _baseFeeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الرسوم الأساسية', filled: true, fillColor: Colors.white), onChanged: (_) => setState(_recalcInstallments)),
-              const SizedBox(height: 12),
+              TextField(controller: _baseFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration('الرسوم الأساسية'), onChanged: (_) => setState(_recalcInstallments)),
+              const SizedBox(height: 16),
               Row(children: [
-                Expanded(child: TextField(controller: _inst1Ctrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط أول', filled: true, fillColor: Colors.white))),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _inst2Ctrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط ثاني', filled: true, fillColor: Colors.white))),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _inst3Ctrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قسط أخير', filled: true, fillColor: Colors.white))),
+                Expanded(child: TextField(controller: _inst1Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط أول'))),
+                const SizedBox(width: 10),
+                Expanded(child: TextField(controller: _inst2Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط ثاني'))),
+                const SizedBox(width: 10),
+                Expanded(child: TextField(controller: _inst3Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط أخير'))),
               ]),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Row(children: [
-                Expanded(child: InkWell(onTap: () => _pickDate(true), child: InputDecorator(decoration: const InputDecoration(labelText: 'استحقاق القسط 2', filled: true, fillColor: Colors.white), child: Text(_due2 == null ? 'غير محدد' : dateStr(_due2), style: const TextStyle(fontSize: 13))))),
-                const SizedBox(width: 8),
-                Expanded(child: InkWell(onTap: () => _pickDate(false), child: InputDecorator(decoration: const InputDecoration(labelText: 'استحقاق القسط 3', filled: true, fillColor: Colors.white), child: Text(_due3 == null ? 'غير محدد' : dateStr(_due3), style: const TextStyle(fontSize: 13))))),
+                Expanded(child: InkWell(onTap: () => _pickDate(true), child: InputDecorator(decoration: _inputDecoration('استحقاق القسط 2', suffixIcon: const Icon(Icons.calendar_today, size: 20)), child: Text(_due2 == null ? 'غير محدد' : dateStr(_due2), style: const TextStyle(fontSize: 13))))),
+                const SizedBox(width: 10),
+                Expanded(child: InkWell(onTap: () => _pickDate(false), child: InputDecorator(decoration: _inputDecoration('استحقاق القسط 3', suffixIcon: const Icon(Icons.calendar_today, size: 20)), child: Text(_due3 == null ? 'غير محدد' : dateStr(_due3), style: const TextStyle(fontSize: 13))))),
               ]),
               const SizedBox(height: 16),
               
-              // خيارات أنواع الرسوم
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('شامل رسوم التسجيل', style: TextStyle(fontSize: 14)),
@@ -173,8 +172,8 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               ),
               if (_includeReg) 
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: TextField(controller: _regFeeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قيمة رسوم التسجيل', filled: true, fillColor: Colors.white)),
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: TextField(controller: _regFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قيمة رسوم التسجيل')),
                 ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
@@ -183,12 +182,11 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                 onChanged: (v) => setState(() => _includeExam = v),
               ),
               if (_includeExam) 
-                TextField(controller: _examFeeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'قيمة رسوم الامتحانات', filled: true, fillColor: Colors.white)),
+                TextField(controller: _examFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قيمة رسوم الامتحانات')),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           
-          // 3. الأسماء
           _buildCard(
             title: '3. أسماء الطلاب (اسم في كل سطر)',
             icon: Icons.list_alt,
@@ -196,25 +194,25 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               TextField(
                 controller: _studentsTextCtrl,
                 maxLines: 6,
-                decoration: const InputDecoration(
-                  hintText: 'محمد أحمد\nعلي خديوي\nعمر ياسر\n...',
-                  filled: true,
-                  fillColor: Colors.white,
-                  helperText: 'أدخل اسم كل طالب في سطر منفصل',
-                ),
+                decoration: _inputDecoration('محمد أحمد\nعلي خديوي\nعمر ياسر\n...', helperText: 'أدخل اسم كل طالب في سطر منفصل'),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 30),
           
-          // زر الحفظ
           SizedBox(
             height: 55,
             child: ElevatedButton.icon(
               onPressed: _saveClass,
               icon: const Icon(Icons.group_add),
-              label: const Text('إضافة الطلاب وتوزيع الأقساط آلياً', style: TextStyle(fontSize: 15)),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary(context), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              label: const Text('إضافة الطلاب وتوزيع الأقساط آلياً', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary(context), 
+                foregroundColor: Colors.white, 
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 5,
+                shadowColor: AppColors.primary(context).withOpacity(0.5),
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -223,23 +221,42 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
     );
   }
 
+  InputDecoration _inputDecoration(String label, {String? helperText, Widget? suffixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      helperText: helperText,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   Widget _buildFeesTable(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(20), 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(Icons.table_chart, size: 20, color: AppColors.primary(context)), const SizedBox(width: 8), Text('تحديد رسوم كل الفصول', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))]),
-          const Divider(height: 24),
+          Row(children: [
+            Icon(Icons.table_chart, size: 24, color: AppColors.primary(context)), 
+            const SizedBox(width: 10), 
+            Text('تحديد رسوم كل الفصول', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))
+          ]),
+          const Divider(height: 30),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columnSpacing: 16,
+              columnSpacing: 24,
               columns: const [
-                DataColumn(label: Text('الفصل')),
-                DataColumn(label: Text('الرسوم (قابلة للتعديل)')),
-                DataColumn(label: Text('إجراء')),
+                DataColumn(label: Text('الفصل', style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('الرسوم (قابلة للتعديل)', style: TextStyle(fontWeight: FontWeight.bold))),
               ],
               rows: stagesList.expand((st) {
                 return List.generate(stageCount(st.stage), (i) {
@@ -249,7 +266,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                     DataCell(Text('${st.name} - ${classNames[i]}')),
                     DataCell(
                       SizedBox(
-                        width: 100,
+                        width: 120,
                         child: TextFormField(
                           initialValue: fee.toStringAsFixed(0),
                           keyboardType: TextInputType.number,
@@ -261,7 +278,6 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                         ),
                       ),
                     ),
-                    const DataCell(Icon(Icons.edit, size: 18, color: Colors.grey)),
                   ]);
                 });
               }).toList(),
@@ -274,13 +290,21 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
 
   Widget _buildCard({required String title, required IconData icon, required List<Widget> children}) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(20), 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, size: 20, color: AppColors.primary(context)), const SizedBox(width: 8), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))]),
-          const Divider(height: 24),
+          Row(children: [
+            Icon(icon, size: 24, color: AppColors.primary(context)), 
+            const SizedBox(width: 10), 
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))
+          ]),
+          const Divider(height: 30),
           ...children,
         ],
       ),
