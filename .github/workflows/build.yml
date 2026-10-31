@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
+        with:
+          path: app_source
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -27,25 +29,44 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 🏗️ Create Flutter Android Scaffold
+      - name: 🏗️ Create Fresh Flutter Project & Copy Source
         run: |
-          flutter create temp_app --project-name mamax_school_fees --platforms android
-          cp -r temp_app/android ./
-          rm -rf temp_app
+          flutter create build_app --project-name mamax_school_fees --platforms android --org com.mamax
+          cp -r app_source/lib build_app/
+          cp app_source/pubspec.yaml build_app/
+          if [ -f app_source/logo.png ]; then cp app_source/logo.png build_app/; fi
+
+      - name: 🔧 Configure Android & Icon
+        working-directory: build_app
+        run: |
           sed -i 's/android:label="mamax_school_fees"/android:label="رسومك الدراسية"/g' android/app/src/main/AndroidManifest.xml
           sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
-          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
+          if [ -f "logo.png" ]; then
+            cp logo.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          fi
 
       - name: 📦 Install Dependencies
+        working-directory: build_app
         run: flutter pub get
 
       - name: 🔨 Build APK (إظهار الخطأ الحقيقي)
+        working-directory: build_app
         run: |
           flutter build apk --release > build_log.txt 2>&1 || true
-          if grep -q "FAILURE" build_log.txt; then
+          # البحث عن سطر الخطأ البرمجي الذي يحتوي على اسم ملف .dart
+          if grep -q "Error:" build_log.txt; then
             echo "================= الخطأ الحقيقي =================="
-            grep -A 10 "FAILURE" build_log.txt
+            grep -B 2 -A 5 "Error:" build_log.txt
+            echo "==================================================="
+            exit 1
+          elif grep -q "FAILURE" build_log.txt; then
+            echo "================= الخطأ الحقيقي =================="
+            grep -A 15 "FAILURE" build_log.txt
             echo "==================================================="
             exit 1
           fi
@@ -54,5 +75,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mamax-school-fees-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build_app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
