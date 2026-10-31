@@ -88,7 +88,7 @@ class AppProvider extends ChangeNotifier {
       entityName: s.name,
       amount: p.amount,
       date: p.date,
-      referenceNumber: p.ref
+      referenceNumber: p.reference // تم التصحيح هنا
     );
     transactions.add(newTx);
     await _save(); 
@@ -102,7 +102,6 @@ class AppProvider extends ChangeNotifier {
   
   Future<void> addTransaction(FinancialTransaction tx) async { transactions.add(tx); await _save(); }
   
-  // دوال التعديل والحذف للعمليات المالية
   Future<void> updateTransaction(FinancialTransaction updatedTx) async {
     final i = transactions.indexWhere((e) => e.id == updatedTx.id);
     if (i > -1) transactions[i] = updatedTx;
