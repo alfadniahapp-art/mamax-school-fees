@@ -48,8 +48,8 @@ jobs:
           # تحديث إعدادات Android SDK
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
 
-          # إصلاح تعارض Kotlin (سطر الأوامر هنا يضيف الإعداد للمشروع)
-          echo "ext.kotlin_version = '1.9.22'" >> android/build.gradle
+          # إصلاح تعارض Kotlin عبر resolutionStrategy (السطر الحاسم)
+          sed -i '/^dependencies {/i \    configurations.all { resolutionStrategy { force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22" } }\n' android/app/build.gradle
 
           # نسخ الأيقونة إذا وجدت
           if [ -f "logo.png" ]; then
