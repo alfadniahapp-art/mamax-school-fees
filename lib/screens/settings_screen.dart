@@ -39,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bankPhone: _bankPhone.text.trim(),
     ));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
       Navigator.pop(context);
     }
   }
@@ -94,42 +94,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _colorDot(const Color(0xFF0F766E), themeProv), // زمردي
-                _colorDot(const Color(0xFF2563EB), themeProv), // أزرق
-                _colorDot(const Color(0xFF7C3AED), themeProv), // بنفسجي
-                _colorDot(const Color(0xFFDC2626), themeProv), // أحمر
-                _colorDot(const Color(0xFF1F2937), themeProv), // أسود داكن
+                _colorDot(const Color(0xFF0F766E), themeProv),
+                _colorDot(const Color(0xFF2563EB), themeProv),
+                _colorDot(const Color(0xFF7C3AED), themeProv),
+                _colorDot(const Color(0xFFDC2626), themeProv),
+                _colorDot(const Color(0xFF1F2937), themeProv),
               ],
             ),
           ]),
-          _card('الأمان والنسخ الاحتياطي', [
+          _card('الأمان', [
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.lock_reset, color: AppColors.primary(context)),
               title: const Text('استعادة كلمة السر'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: _resetPassword,
-            ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.backup, color: AppColors.ok),
-              title: const Text('حفظ نسخة من البيانات'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => context.read<AppProvider>().exportData(),
-            ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.restore, color: AppColors.partial),
-              title: const Text('استعادة نسخة احتياطية'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () async {
-                final success = await context.read<AppProvider>().importData();
-                if (success && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم استعادة البيانات بنجاح'), backgroundColor: AppColors.ok));
-                }
-              },
             ),
           ]),
           _card('نسب الأقساط', [
@@ -166,13 +145,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GestureDetector(
       onTap: () => themeProv.changePrimaryColor(color),
       child: Container(
-        width: 36,
-        height: 36,
+        width: 36, height: 36,
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
           border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
-          boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 8)] : null,
         ),
         child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
       ),
