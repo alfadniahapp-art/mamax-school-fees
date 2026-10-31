@@ -3,14 +3,13 @@ import 'package:provider/provider.dart';
 import '../models/student.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
-import '../widgets/stat_card.dart';
 import 'student_detail_screen.dart';
 import 'settings_screen.dart';
 import 'alerts_screen.dart';
 import 'lock_screen.dart';
 import 'class_management_screen.dart';
 import 'reports_screen.dart';
-import 'student_form_screen.dart'; // استيراد شاشة الطالب الفردي
+import 'student_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,52 +35,55 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: const Text('رسومك الدراسية'),
+        title: const Text('لوحة التحكم', style: TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            tooltip: 'التقارير',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
-          ),
-          IconButton(
-            icon: Badge(
-              label: Text('${app.allAlerts.length}'),
-              isLabelVisible: app.allAlerts.isNotEmpty,
-              child: const Icon(Icons.notifications),
-            ),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AlertsScreen())),
-          ),
-          IconButton(icon: const Icon(Icons.settings), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
-          IconButton(
-            icon: const Icon(Icons.lock_outline),
-            onPressed: () {
-              app.lock();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LockScreen()));
-            },
-          ),
+          IconButton(icon: const Icon(Icons.bar_chart), tooltip: 'التقارير', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()))),
+          IconButton(icon: const Icon(Icons.settings), tooltip: 'الإعدادات', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+          IconButton(icon: const Icon(Icons.lock_outline), tooltip: 'قفل', onPressed: () {
+            app.lock();
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LockScreen()));
+          }),
         ],
       ),
       body: Column(
         children: [
-          _buildStats(app),
-          _buildFilters(),
-          Expanded(child: _buildList(list)),
+          _buildTopStats(app),
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: _buildFilters()),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (list.isEmpty) return const SizedBox.shrink();
+                      return _buildStudentCard(list[index]);
+                    },
+                    childCount: list.length,
+                  ),
+                ),
+                if (list.isEmpty)
+                  const SliverFillRemaining(child: Center(child: Text('لا يوجد طلاب مسجلون حالياً', style: TextStyle(color: Colors.grey)))),
+              ],
+            ),
+          ),
         ],
       ),
-      floatingActionButton: Row(
+      floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton.extended(
-            heroTag: 'class_manage',
+            heroTag: 'report',
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClassManagementScreen())).then((_) => setState(() {})),
-            backgroundColor: AppColors.secondary,
-            icon: const Icon(Icons.group),
+            backgroundColor: const Color(0xFFD97706),
+            icon: const Icon(Icons.group_add),
             label: const Text('إدارة الفصول'),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(height: 12),
           FloatingActionButton.extended(
-            heroTag: 'student_add',
+            heroTag: 'add',
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {})),
             backgroundColor: AppColors.primary(context),
             icon: const Icon(Icons.person_add),
@@ -92,40 +94,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStats(AppProvider app) {
+  Widget _buildTopStats(AppProvider app) {
     return Container(
-      color: AppColors.primary(context),
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-      child: StatsGrid(
-        cards: [
-          StatCard(label: 'الطلاب', value: '${app.students.length}', icon: Icons.people, color: Colors.white),
-          StatCard(label: 'المطلوب', value: money(app.totalRequired), icon: Icons.assignment, color: Colors.amber.shade300),
-          StatCard(label: 'المدفوع', value: money(app.totalPaid), icon: Icons.check_circle, color: Colors.green.shade300, progress: app.paidPct),
-          StatCard(label: 'المتبقي', value: money(app.totalRemaining), icon: Icons.account_balance_wallet, color: Colors.red.shade300),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      decoration: BoxDecoration(
+        color: AppColors.primary(context),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+        boxShadow: [BoxShadow(color: AppColors.primary(context).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _miniStat('الطلاب', '${app.students.length}', Icons.people),
+          _miniStat('المطلوب', money(app.totalRequired), Icons.assignment),
+          _miniStat('المدفوع', money(app.totalPaid), Icons.check_circle),
+          _miniStat('المتبقي', money(app.totalRemaining), Icons.warning),
         ],
       ),
+    );
+  }
+
+  Widget _miniStat(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white70, size: 22),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+      ],
     );
   }
 
   Widget _buildFilters() {
     int maxClasses = _stageFilter != null ? stageCount(_stageFilter!) : 6;
     return Container(
+      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(12),
-      color: AppColors.surface(context),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
       child: Column(
         children: [
           TextField(
             controller: _searchCtrl,
-            decoration: const InputDecoration(hintText: 'بحث بالاسم...', prefixIcon: Icon(Icons.search)),
+            decoration: InputDecoration(
+              hintText: 'بحث بالاسم أو رقم الهاتف...',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: Colors.grey.shade50,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
             onChanged: (_) => setState(() {}),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: DropdownButtonFormField<Stage?>(
                   value: _stageFilter,
-                  decoration: const InputDecoration(labelText: 'المرحلة', isDense: true),
+                  decoration: const InputDecoration(labelText: 'المرحلة', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
                   items: const [
                     DropdownMenuItem(value: null, child: Text('الكل')),
                     DropdownMenuItem(value: Stage.primary, child: Text('ابتدائي')),
@@ -139,25 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: DropdownButtonFormField<int?>(
                   value: _clsFilter,
-                  decoration: const InputDecoration(labelText: 'الصف', isDense: true),
+                  decoration: const InputDecoration(labelText: 'الصف', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('الكل')),
                     ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
                   ],
                   onChanged: (v) => setState(() => _clsFilter = v),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: DropdownButtonFormField<Gender?>(
-                  value: _genderFilter,
-                  decoration: const InputDecoration(labelText: 'النوع', isDense: true),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('الكل')),
-                    DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
-                    DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
-                  ],
-                  onChanged: (v) => setState(() => _genderFilter = v),
                 ),
               ),
             ],
@@ -167,35 +184,63 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildList(List<Student> list) {
-    if (list.isEmpty) return const Center(child: Text('لا يوجد طلاب', style: TextStyle(color: Colors.grey)));
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: list.length,
-      itemBuilder: (_, i) {
-        final s = list[i];
-        final pct = s.paidPct;
-        final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
-        return Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(12),
-            leading: CircleAvatar(backgroundColor: c.withOpacity(0.15), child: Icon(Icons.person, color: c)),
-            title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildStudentCard(Student s) {
+    final pct = s.paidPct;
+    final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12, right: 16, left: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.withOpacity(0.2), width: 1),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id))).then((_) => setState(() {})),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                Text('${stageName(s.stage)} - ${classNames[s.cls - 1]} - ${genderName(s.gender)}', style: const TextStyle(fontSize: 12)),
-                const SizedBox(height: 6),
-                LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade200, minHeight: 6),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: c.withOpacity(0.15),
+                      child: Text(s.name.substring(0, 1), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 18)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text('${stageName(s.stage)} • ${classNames[s.cls - 1]} • ${genderName(s.gender)}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(money(s.remaining), style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 14)),
+                        const Text('المتبقي', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade100, minHeight: 8),
+                ),
               ],
             ),
-            trailing: Text(money(s.remaining), style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold, fontSize: 13)),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id))).then((_) => setState(() {})),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
