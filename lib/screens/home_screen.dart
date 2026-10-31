@@ -44,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.lock_outline),
-            tooltip: 'قفل التطبيق',
             onPressed: () {
               app.lock();
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LockScreen()));
@@ -61,7 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {})),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.primary(context),
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('طالب جديد'),
       ),
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildStats(AppProvider app) {
     return Container(
-      color: AppColors.primary,
+      color: AppColors.primary(context),
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       child: StatsGrid(
         cards: [
@@ -84,9 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFilters() {
+    int maxClasses = _stageFilter != null ? stageCount(_stageFilter!) : 6;
     return Container(
       padding: const EdgeInsets.all(12),
-      color: Colors.white,
+      color: AppColors.surface(context),
       child: Column(
         children: [
           TextField(
@@ -107,7 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     DropdownMenuItem(value: Stage.middle, child: Text('متوسط')),
                     DropdownMenuItem(value: Stage.high, child: Text('ثانوي')),
                   ],
-                  onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }),
+                  onChanged: (v) => setState(() {
+                    _stageFilter = v;
+                    _clsFilter = null;
+                  }),
                 ),
               ),
               const SizedBox(width: 10),
@@ -117,10 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: const InputDecoration(labelText: 'الصف', isDense: true),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('الكل')),
-                    ...List.generate(
-                      _stageFilter != null ? stageCount(_stageFilter!) : 6,
-                      (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i])),
-                    ),
+                    ...List.generate(maxClasses, (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
                   ],
                   onChanged: (v) => setState(() => _clsFilter = v),
                 ),
@@ -158,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 LinearProgressIndicator(value: pct, color: c, backgroundColor: Colors.grey.shade200, minHeight: 6),
               ],
             ),
-            trailing: Text(money(s.remaining), style: TextStyle(color: AppColors.none, fontWeight: FontWeight.bold, fontSize: 13)),
+            trailing: Text(money(s.remaining), style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold, fontSize: 13)),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentDetailScreen(studentId: s.id))).then((_) => setState(() {})),
           ),
         );
