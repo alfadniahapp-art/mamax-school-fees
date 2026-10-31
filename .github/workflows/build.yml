@@ -34,18 +34,31 @@ jobs:
           flutter create temp_app --project-name mamax_school_fees --platforms android
           cp -r temp_app/android ./
           rm -rf temp_app
+          
+          # تعديل اسم التطبيق
           sed -i 's/android:label="mamax_school_fees"/android:label="رسومك الدراسية"/g' android/app/src/main/AndroidManifest.xml
+          
+          # إضافة الصلاحيات
           sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
+          
+          # تحديث إعدادات Android
           sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
-          cp assets/icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png || true
+          
+          # نسخ الأيقونة (logo.png) إلى مجلد الأندرويد
+          if [ -f "logo.png" ]; then
+            cp logo.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            cp logo.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          fi
 
       - name: 📦 Install Dependencies
         run: flutter pub get
 
-      - name: 🔨 Build APK (طباعة الأخطاء الحقيقية)
-        run: |
-          flutter build apk --release > build_log.txt 2>&1 || (cat build_log.txt && exit 1)
+      - name: 🔨 Build APK
+        run: flutter build apk --release
 
       - name: 📤 Upload APK
         uses: actions/upload-artifact@v4
