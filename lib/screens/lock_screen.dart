@@ -18,10 +18,7 @@ class _LockScreenState extends State<LockScreen> {
     final app = context.read<AppProvider>();
     if (app.checkPin(_pinCtrl.text)) {
       app.unlock();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
     } else {
       setState(() => _error = 'كلمة السر غير صحيحة');
       _pinCtrl.clear();
@@ -40,20 +37,20 @@ class _LockScreenState extends State<LockScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary(context).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.lock_outline, size: 64, color: AppColors.primary),
+                child: Icon(Icons.lock_outline, size: 64, color: AppColors.primary(context)),
               ),
               const SizedBox(height: 24),
               const Text(
                 'رسومك الدراسية',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Text(
                 'أدخل كلمة السر للدخول',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
               const SizedBox(height: 32),
               TextField(
@@ -64,13 +61,12 @@ class _LockScreenState extends State<LockScreen> {
                 style: const TextStyle(fontSize: 24, letterSpacing: 8),
                 decoration: const InputDecoration(
                   hintText: '••••',
-                  errorText: null,
                 ),
                 onSubmitted: (_) => _submit(),
               ),
               if (_error.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(_error, style: const TextStyle(color: AppColors.none, fontWeight: FontWeight.bold)),
+                Text(_error, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               ],
               const SizedBox(height: 24),
               SizedBox(
