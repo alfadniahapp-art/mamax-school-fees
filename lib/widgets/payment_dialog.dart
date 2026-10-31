@@ -11,10 +11,11 @@ Future<void> showPaymentDialog(
   FeeType? presetType,
   double? presetAmount,
 }) {
-  return showDialog(
+  return showModalBottomSheet(
     context: context,
-    barrierDismissible: false,
-    builder: (_) => _PaymentDialog(
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _PaymentSheet(
       studentId: student.id,
       presetType: presetType,
       presetAmount: presetAmount,
@@ -22,22 +23,22 @@ Future<void> showPaymentDialog(
   );
 }
 
-class _PaymentDialog extends StatefulWidget {
+class _PaymentSheet extends StatefulWidget {
   final String studentId;
   final FeeType? presetType;
   final double? presetAmount;
 
-  const _PaymentDialog({
+  const _PaymentSheet({
     required this.studentId,
     this.presetType,
     this.presetAmount,
   });
 
   @override
-  State<_PaymentDialog> createState() => _PaymentDialogState();
+  State<_PaymentSheet> createState() => _PaymentSheetState();
 }
 
-class _PaymentDialogState extends State<_PaymentDialog> {
+class _PaymentSheetState extends State<_PaymentSheet> {
   final _formKey = GlobalKey<FormState>();
   late FeeType _type;
   PaymentMethod _method = PaymentMethod.cash;
@@ -51,7 +52,6 @@ class _PaymentDialogState extends State<_PaymentDialog> {
     final app = context.read<AppProvider>();
     final student = app.getStudentById(widget.studentId)!;
 
-    // اختيار النوع الافتراضي
     if (widget.presetType != null) {
       _type = widget.presetType!;
     } else {
@@ -99,33 +99,6 @@ class _PaymentDialogState extends State<_PaymentDialog> {
       return;
     }
 
-    final rem = student.remainingFor(_type);
-    if (amount > rem + 0.5) {
-      final ok = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('تنبيه'),
-          content: Text(
-            'المبلغ (${money(amount)}) يتجاوز المتبقي (${money(rem)}) لهذا البند.\n\nهل تريد المتابعة؟',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('إلغاء'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: kPrimaryColor,
-                  foregroundColor: Colors.white),
-              child: const Text('متابعة'),
-            ),
-          ],
-        ),
-      );
-      if (ok != true) return;
-    }
-
     await app.addPayment(
       widget.studentId,
       Payment(
@@ -143,7 +116,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('✓ تم تسجيل دفعة بمبلغ ${money(amount)}'),
-          backgroundColor: kOkColor,
+          backgroundColor: AppColors.ok,
         ),
       );
     }
@@ -162,188 +135,164 @@ class _PaymentDialogState extends State<_PaymentDialog> {
     options.add(FeeType.inst2);
     options.add(FeeType.inst3);
 
-    return AlertDialog(
-      title: Row(
-        children: [
-          const Icon(Icons.payment, color: kPrimaryColor),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'تسجيل دفعة — ${student.name}',
-              style: const TextStyle(fontSize: 15),
-            ),
-          ),
-        ],
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      content: Form(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<FeeType>(
-                value: _type,
-                decoration: const InputDecoration(labelText: 'نوع الرسوم'),
-                items: options.map((t) {
-                  final r = student.remainingFor(t);
-                  return DropdownMenuItem(
-                    value: t,
-                    child: Text(
-                      '${feeTypeLabel(t)} — متبقي ${money(r)}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: r > 0 ? Colors.black : Colors.grey,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (v) {
-                  if (v == null) return;
-                  setState(() {
-                    _type = v;
-                    final r = student.remainingFor(v);
-                    if (r > 0) _amount.text = r.toStringAsFixed(0);
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _amount,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'المبلغ',
-                  helperText: 'المتبقي: ${money(rem)}',
-                  suffixIcon: rem > 0
-                      ? IconButton(
-                          icon: const Icon(Icons.auto_fix_high, size: 18),
-                          tooltip: 'ملء المتبقي',
-                          onPressed: () => setState(
-                              () => _amount.text = rem.toStringAsFixed(0)),
-                        )
-                      : null,
-                ),
-                validator: (v) {
-                  final n = double.tryParse(v ?? '');
-                  if (n == null || n <= 0) return 'أدخل مبلغاً صحيحاً';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<PaymentMethod>(
-                value: _method,
-                decoration:
-                    const InputDecoration(labelText: 'طريقة التسديد'),
-                items: const [
-                  DropdownMenuItem(
-                    value: PaymentMethod.cash,
-                    child: Row(children: [
-                      Icon(Icons.payments, size: 18),
-                      SizedBox(width: 8),
-                      Text('كاش'),
-                    ]),
-                  ),
-                  DropdownMenuItem(
-                    value: PaymentMethod.bank,
-                    child: Row(children: [
-                      Icon(Icons.account_balance, size: 18),
-                      SizedBox(width: 8),
-                      Text('تحويل بنكي'),
-                    ]),
-                  ),
-                ],
-                onChanged: (v) {
-                  if (v == null) return;
-                  setState(() {
-                    _method = v;
-                    _reference.clear();
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _reference,
-                decoration: InputDecoration(
-                  labelText: _method == PaymentMethod.cash
-                      ? 'اسم المستلم'
-                      : 'رقم العملية / الإيصال',
-                  prefixIcon: Icon(
-                    _method == PaymentMethod.cash
-                        ? Icons.person
-                        : Icons.confirmation_number,
-                    size: 18,
-                  ),
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: _pickDate,
-                borderRadius: BorderRadius.circular(4),
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'تاريخ الدفع',
-                    suffixIcon: Icon(Icons.calendar_today, size: 18),
-                  ),
-                  child: Text(dateStr(_date)),
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(20),
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              if (_method == PaymentMethod.bank &&
-                  app.settings.bankAccountName.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.teal.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('بيانات الحساب البنكي:',
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: kPrimaryColor)),
-                      const SizedBox(height: 4),
-                      Text('👤 ${app.settings.bankAccountName}',
-                          style: const TextStyle(fontSize: 12)),
-                      Text('🏦 ${app.settings.bankAccountNumber}',
-                          style: const TextStyle(fontSize: 12)),
-                      if (app.settings.bankPhone.isNotEmpty)
-                        Text('📱 ${app.settings.bankPhone}',
-                            style: const TextStyle(fontSize: 12)),
-                    ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.payment, color: AppColors.primary, size: 28),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'تسجيل دفعة - ${student.name}',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<FeeType>(
+              value: _type,
+              decoration: const InputDecoration(labelText: 'نوع الرسوم / القسط'),
+              items: options.map((t) {
+                final r = student.remainingFor(t);
+                return DropdownMenuItem(
+                  value: t,
+                  child: Text(
+                    '${feeTypeLabel(t)} — متبقي ${money(r)}',
+                    style: TextStyle(
+                      color: r > 0 ? Colors.black : Colors.grey,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() {
+                  _type = v;
+                  final r = student.remainingFor(v);
+                  if (r > 0) _amount.text = r.toStringAsFixed(0);
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _amount,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'المبلغ',
+                helperText: 'المتبقي: ${money(rem)}',
+                suffixIcon: rem > 0
+                    ? IconButton(
+                        icon: const Icon(Icons.auto_fix_high, size: 20),
+                        onPressed: () => setState(
+                            () => _amount.text = rem.toStringAsFixed(0)),
+                      )
+                    : null,
+              ),
+              validator: (v) {
+                final n = double.tryParse(v ?? '');
+                if (n == null || n <= 0) return 'أدخل مبلغاً صحيحاً';
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<PaymentMethod>(
+              value: _method,
+              decoration: const InputDecoration(labelText: 'طريقة التسديد'),
+              items: const [
+                DropdownMenuItem(
+                  value: PaymentMethod.cash,
+                  child: Text('💵 كاش'),
+                ),
+                DropdownMenuItem(
+                  value: PaymentMethod.bank,
+                  child: Text('🏦 تحويل بنكي'),
+                ),
+              ],
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() {
+                  _method = v;
+                  _reference.clear();
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reference,
+              decoration: InputDecoration(
+                labelText: _method == PaymentMethod.cash
+                    ? 'اسم المستلم'
+                    : 'رقم العملية',
+                prefixIcon: Icon(
+                  _method == PaymentMethod.cash
+                      ? Icons.person
+                      : Icons.confirmation_number,
+                ),
+              ),
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: _pickDate,
+              borderRadius: BorderRadius.circular(12),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'تاريخ الدفع',
+                  suffixIcon: Icon(Icons.calendar_today, size: 20),
+                ),
+                child: Text(dateStr(_date)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('إلغاء',
+                        style: TextStyle(color: Colors.grey)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: _save,
+                    child: const Text('تأكيد الدفع'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء'),
-        ),
-        ElevatedButton.icon(
-          onPressed: _save,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kPrimaryColor,
-            foregroundColor: Colors.white,
-          ),
-          icon: const Icon(Icons.check, size: 18),
-          label: const Text('حفظ الدفعة'),
-        ),
-      ],
     );
-  }
-
-  @override
-  void dispose() {
-    _amount.dispose();
-    _reference.dispose();
-    super.dispose();
   }
 }
