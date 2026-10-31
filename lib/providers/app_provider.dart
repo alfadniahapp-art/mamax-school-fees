@@ -8,52 +8,52 @@ import 'package:file_picker/file_picker.dart';
 import '../models/student.dart';
 import '../models/payment.dart';
 import '../models/settings.dart';
-import '../models/transaction.dart'; // استيراد نموذج العمليات
+import '../models/transaction.dart';
 
 class AppProvider extends ChangeNotifier {
   List<Student> students = [];
-  List<FinancialTransaction> transactions = []; // قائمة العمليات المالية
+  List<FinancialTransaction> transactions = [];
   AppSettings settings = AppSettings();
   bool isLoading = true;
   bool isUnlocked = false;
   
   String _pinCode = '1234';
-
   final _uuid = const Uuid();
   static const _kStudents = 'students_v1';
   static const _kSettings = 'settings_v1';
   static const _kPin = 'app_pin_v1';
   static const _kTransactions = 'transactions_v1';
+  static const _kClassFees = 'class_fees_v1';
+
+  // ذاكرة لحفظ رسوم كل فصل: مفتاح مثل "primary-1" وقيمة الرسوم
+  Map<String, double> _classFees = {};
 
   Future<void> load() async {
     isLoading = true;
     final prefs = await SharedPreferences.getInstance();
     _pinCode = prefs.getString(_kPin) ?? '1234';
 
-    // تحميل الطلاب
     final s = prefs.getString(_kStudents);
     if (s != null) {
-      try {
-        final list = jsonDecode(s) as List;
-        students = list.map((e) => Student.fromJson(e)).toList();
-      } catch (e) { debugPrint('Error: $e'); }
+      try { students = (jsonDecode(s) as List).map((e) => Student.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); }
     }
 
-    // تحميل العمليات المالية
     final tx = prefs.getString(_kTransactions);
     if (tx != null) {
-      try {
-        final list = jsonDecode(tx) as List;
-        transactions = list.map((e) => FinancialTransaction.fromJson(e)).toList();
-      } catch (e) { debugPrint('Error: $e'); }
+      try { transactions = (jsonDecode(tx) as List).map((e) => FinancialTransaction.fromJson(e)).toList(); } catch (e) { debugPrint('$e'); }
     }
 
-    // تحميل الإعدادات
     final st = prefs.getString(_kSettings);
     if (st != null) {
-      try {
-        settings = AppSettings.fromJson(jsonDecode(st));
-      } catch (e) { debugPrint('Error: $e'); }
+      try { settings = AppSettings.fromJson(jsonDecode(st)); } catch (e) { debugPrint('$e'); }
+    }
+
+    final cf = prefs.getString(_kClassFees);
+    if (cf != null) {
+      try { 
+        final Map<String, dynamic> decoded = jsonDecode(cf);
+        _classFees = decoded.map((key, value) => MapEntry(key, (value as num).toDouble()));
+      } catch (e) { debugPrint('$e'); }
     }
     
     isLoading = false;
@@ -65,7 +65,19 @@ class AppProvider extends ChangeNotifier {
     await prefs.setString(_kStudents, jsonEncode(students.map((e) => e.toJson()).toList()));
     await prefs.setString(_kSettings, jsonEncode(settings.toJson()));
     await prefs.setString(_kTransactions, jsonEncode(transactions.map((e) => e.toJson()).toList()));
+    await prefs.setString(_kClassFees, jsonEncode(_classFees));
     notifyListeners();
+  }
+
+  // دالة لتعيين رسوم فصل معين
+  Future<void> setClassFee(String key, double fee) async {
+    _classFees[key] = fee;
+    await _save();
+  }
+
+  // دالة لجلب رسوم فصل معين (إذا لم توجد، ترجع الرسوم الافتراضية 200000)
+  double getClassFee(String key) {
+    return _classFees[key] ?? 200000;
   }
 
   Future<void> savePin(String pin) async {
@@ -80,24 +92,17 @@ class AppProvider extends ChangeNotifier {
   void lock() { isUnlocked = false; notifyListeners(); }
   String newId() => _uuid.v4();
 
-  // --- الطلاب ---
   Future<void> addStudent(Student s) async { students.add(s); await _save(); }
   Future<void> addMultipleStudents(List<Student> newStudents) async { students.addAll(newStudents); await _save(); }
   Future<void> updateStudent(Student s) async { final i = students.indexWhere((e) => e.id == s.id); if (i > -1) students[i] = s; await _save(); }
   Future<void> deleteStudent(String id) async { students.removeWhere((e) => e.id == id); await _save(); }
   Student? getStudentById(String id) { try { return students.firstWhere((e) => e.id == id); } catch (_) { return null; } }
 
-  // --- الدفعات ---
   Future<void> addPayment(String studentId, Payment p) async { final s = students.firstWhere((e) => e.id == studentId); s.payments.add(p); await _save(); }
   Future<void> removePayment(String studentId, String paymentId) async { final s = students.firstWhere((e) => e.id == studentId); s.payments.removeWhere((p) => p.id == paymentId); await _save(); }
-  
-  // --- العمليات المالية (الصندوق والبنك) ---
-  Future<void> addTransaction(FinancialTransaction tx) async {
-    transactions.add(tx);
-    await _save();
-  }
+  Future<void> addTransaction(FinancialTransaction tx) async { transactions.add(tx); await _save(); }
+  Future<void> saveSettings(AppSettings s) async { settings = s; await _save(); }
 
-  // حساب رصيد الصندوق (كاش)
   double get cashBalance {
     double balance = 0;
     for (var tx in transactions) {
@@ -113,7 +118,6 @@ class AppProvider extends ChangeNotifier {
     return balance;
   }
 
-  // حساب رصيد البنك
   double get bankBalance {
     double balance = 0;
     for (var tx in transactions) {
@@ -129,51 +133,28 @@ class AppProvider extends ChangeNotifier {
     return balance;
   }
 
-  Future<void> saveSettings(AppSettings s) async { settings = s; await _save(); }
-
-  // النسخ الاحتياطي
   Future<void> exportData() async {
-    final data = jsonEncode({
-      'students': students.map((e) => e.toJson()).toList(),
-      'transactions': transactions.map((e) => e.toJson()).toList(),
-      'settings': settings.toJson(),
-      'pin': _pinCode,
-    });
-    final file = XFile.fromData(utf8.encode(data), name: 'school_fees_backup_${DateTime.now().millisecondsSinceEpoch}.json', mimeType: 'application/json');
-    await Share.shareXFiles([file], text: 'نسخة احتياطية من بيانات رسوم الطلاب');
+    final data = jsonEncode({'students': students.map((e) => e.toJson()).toList(), 'transactions': transactions.map((e) => e.toJson()).toList(), 'settings': settings.toJson(), 'pin': _pinCode});
+    final file = XFile.fromData(utf8.encode(data), name: 'backup.json', mimeType: 'application/json');
+    await Share.shareXFiles([file], text: 'نسخة احتياطية');
   }
 
   Future<bool> importData() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json']);
     if (result != null && result.files.single.path != null) {
       try {
-        final file = File(result.files.single.path!);
-        final content = await file.readAsString();
-        final data = jsonDecode(content);
-        
-        if (data['students'] != null) {
-          students = (data['students'] as List).map((e) => Student.fromJson(e)).toList();
-        }
-        if (data['transactions'] != null) {
-          transactions = (data['transactions'] as List).map((e) => FinancialTransaction.fromJson(e)).toList();
-        }
-        if (data['settings'] != null) {
-          settings = AppSettings.fromJson(data['settings']);
-        }
-        if (data['pin'] != null) {
-          _pinCode = data['pin'];
-        }
+        final data = jsonDecode(await File(result.files.single.path!).readAsString());
+        if (data['students'] != null) students = (data['students'] as List).map((e) => Student.fromJson(e)).toList();
+        if (data['transactions'] != null) transactions = (data['transactions'] as List).map((e) => FinancialTransaction.fromJson(e)).toList();
+        if (data['settings'] != null) settings = AppSettings.fromJson(data['settings']);
+        if (data['pin'] != null) _pinCode = data['pin'];
         await _save();
         return true;
-      } catch (e) {
-        debugPrint('Error importing data: $e');
-        return false;
-      }
+      } catch (e) { return false; }
     }
     return false;
   }
 
-  // إحصائيات
   double get totalRequired => students.fold(0.0, (s, e) => s + e.totalRequired);
   double get totalPaid => students.fold(0.0, (s, e) => s + e.totalPaid);
   double get totalRemaining => totalRequired - totalPaid;
@@ -194,9 +175,7 @@ class AppProvider extends ChangeNotifier {
     final paid = s.paidFor(t);
     if (paid >= required) return;
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(due.year, due.month, due.day);
-    final days = target.difference(today).inDays;
+    final days = DateTime(due.year, due.month, due.day).difference(DateTime(now.year, now.month, now.day)).inDays;
     if (days < 0) out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': true, 'due': due});
     else if (days <= settings.warnDays) out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': false, 'due': due});
   }
@@ -211,8 +190,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   Map<String, double> getFeesForKey(String key) {
-    if (key.startsWith('primary')) return {'base': 150000, 'reg': 25000, 'exam': 50000};
-    if (key.startsWith('middle')) return {'base': 200000, 'reg': 0, 'exam': 0};
-    return {'base': 250000, 'reg': 0, 'exam': 0};
+    final base = _classFees[key] ?? 200000;
+    return {'base': base, 'reg': 25000, 'exam': 50000};
   }
 }
