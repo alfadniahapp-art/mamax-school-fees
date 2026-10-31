@@ -10,14 +10,21 @@ class AppProvider extends ChangeNotifier {
   List<Student> students = [];
   AppSettings settings = AppSettings();
   bool isLoading = true;
+  bool isUnlocked = false;
+  
+  String _pinCode = '1234'; // كلمة السر الافتراضية
+  bool get isPinSet => _pinCode.isNotEmpty;
 
   final _uuid = const Uuid();
   static const _kStudents = 'students_v1';
   static const _kSettings = 'settings_v1';
+  static const _kPin = 'app_pin_v1';
 
   Future<void> load() async {
     isLoading = true;
     final prefs = await SharedPreferences.getInstance();
+
+    _pinCode = prefs.getString(_kPin) ?? '1234';
 
     final s = prefs.getString(_kStudents);
     if (s != null) {
@@ -44,15 +51,31 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        _kStudents, jsonEncode(students.map((e) => e.toJson()).toList()));
+    await prefs.setString(_kStudents, jsonEncode(students.map((e) => e.toJson()).toList()));
     await prefs.setString(_kSettings, jsonEncode(settings.toJson()));
     notifyListeners();
   }
 
-  String newId() => _uuid.v4();
+  Future<void> savePin(String pin) async {
+    final prefs = await SharedPreferences.getInstance();
+    _pinCode = pin;
+    await prefs.setString(_kPin, pin);
+    notifyListeners();
+  }
 
-  // ============ إدارة الطلاب ============
+  bool checkPin(String input) => input == _pinCode;
+  
+  void unlock() {
+    isUnlocked = true;
+    notifyListeners();
+  }
+  
+  void lock() {
+    isUnlocked = false;
+    notifyListeners();
+  }
+
+  String newId() => _uuid.v4();
 
   Future<void> addStudent(Student s) async {
     students.add(s);
@@ -78,8 +101,6 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // ============ إدارة الدفعات ============
-
   Future<void> addPayment(String studentId, Payment p) async {
     final s = students.firstWhere((e) => e.id == studentId);
     s.payments.add(p);
@@ -92,30 +113,15 @@ class AppProvider extends ChangeNotifier {
     await _save();
   }
 
-  // ============ الإعدادات ============
-
   Future<void> saveSettings(AppSettings s) async {
     settings = s;
     await _save();
   }
 
-  // ============ إحصائيات ============
-
-  double get totalRequired =>
-      students.fold(0.0, (s, e) => s + e.totalRequired);
-
+  double get totalRequired => students.fold(0.0, (s, e) => s + e.totalRequired);
   double get totalPaid => students.fold(0.0, (s, e) => s + e.totalPaid);
-
   double get totalRemaining => totalRequired - totalPaid;
-
-  double get paidPct =>
-      totalRequired > 0 ? (totalPaid / totalRequired).clamp(0.0, 1.0) : 0.0;
-
-  int get overdueCount => allAlerts.where((a) => a['overdue'] == true).length;
-
-  int get soonCount => allAlerts.where((a) => a['overdue'] == false).length;
-
-  // ============ التنبيهات ============
+  double get paidPct => totalRequired > 0 ? (totalPaid / totalRequired).clamp(0.0, 1.0) : 0.0;
 
   List<Map<String, dynamic>> get allAlerts {
     final out = <Map<String, dynamic>>[];
@@ -123,17 +129,10 @@ class AppProvider extends ChangeNotifier {
       _checkDue(s, s.due2, FeeType.inst2, out);
       _checkDue(s, s.due3, FeeType.inst3, out);
     }
-    out.sort((a, b) {
-      final ao = a['overdue'] == true ? 0 : 1;
-      final bo = b['overdue'] == true ? 0 : 1;
-      if (ao != bo) return ao - bo;
-      return (a['days'] as int).compareTo(b['days'] as int);
-    });
     return out;
   }
 
-  void _checkDue(
-      Student s, DateTime? due, FeeType t, List<Map<String, dynamic>> out) {
+  void _checkDue(Student s, DateTime? due, FeeType t, List<Map<String, dynamic>> out) {
     if (due == null) return;
     final required = s.amountFor(t);
     final paid = s.paidFor(t);
@@ -145,33 +144,13 @@ class AppProvider extends ChangeNotifier {
     final days = target.difference(today).inDays;
 
     if (days < 0) {
-      out.add({
-        'student': s,
-        'type': t,
-        'days': days,
-        'remaining': required - paid,
-        'overdue': true,
-        'due': due,
-      });
+      out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': true, 'due': due});
     } else if (days <= settings.warnDays) {
-      out.add({
-        'student': s,
-        'type': t,
-        'days': days,
-        'remaining': required - paid,
-        'overdue': false,
-        'due': due,
-      });
+      out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': false, 'due': due});
     }
   }
 
-  // ============ فلترة الطلاب ============
-
-  List<Student> filterStudents({
-    String search = '',
-    Stage? stage,
-    int? cls,
-  }) {
+  List<Student> filterStudents({String search = '', Stage? stage, int? cls}) {
     return students.where((s) {
       if (stage != null && s.stage != stage) return false;
       if (cls != null && s.cls != cls) return false;
@@ -180,36 +159,9 @@ class AppProvider extends ChangeNotifier {
     }).toList();
   }
 
-  // ============ كل الدفعات ============
-
-  List<Map<String, dynamic>> getAllPayments({
-    DateTime? from,
-    DateTime? to,
-    PaymentMethod? method,
-    Stage? stage,
-  }) {
-    final out = <Map<String, dynamic>>[];
-    for (final s in students) {
-      if (stage != null && s.stage != stage) continue;
-      for (final p in s.payments) {
-        if (from != null) {
-          final fromDay = DateTime(from.year, from.month, from.day);
-          if (p.date.isBefore(fromDay)) continue;
-        }
-        if (to != null) {
-          final toDay =
-              DateTime(to.year, to.month, to.day).add(const Duration(days: 1));
-          if (p.date.isAfter(toDay)) continue;
-        }
-        if (method != null && p.method != method) continue;
-        out.add({'student': s, 'payment': p});
-      }
-    }
-    out.sort((a, b) {
-      final pa = a['payment'] as Payment;
-      final pb = b['payment'] as Payment;
-      return pb.date.compareTo(pa.date);
-    });
-    return out;
+  Map<String, double> getFeesForKey(String key) {
+    if (key.startsWith('primary')) return {'base': 150000, 'reg': 25000, 'exam': 50000};
+    if (key.startsWith('middle')) return {'base': 200000, 'reg': 0, 'exam': 0};
+    return {'base': 250000, 'reg': 0, 'exam': 0};
   }
 }
