@@ -10,8 +10,8 @@ String dateStr(DateTime? d) => d == null ? '—' : _dateFmt.format(d);
 
 class ThemeProvider extends ChangeNotifier {
   Color _primaryColor = const Color(0xFF0B4A3D); 
-  Color _cardBorderColor = const Color(0xFFD97706).withOpacity(0.6);
-  Color _inputBorderColor = const Color(0xFFE2E8F0); // لون حدود الحقول
+  Color _cardBorderColor = const Color(0xFFD97706); 
+  Color _inputBorderColor = const Color(0xFFD97706); // لون ذهبي صريح للحقول
   Color _cardBgColor = Colors.white;
 
   Color get primaryColor => _primaryColor;
@@ -43,7 +43,7 @@ class AppColors {
 
   static Color inputBorder(BuildContext context) {
     final themeProv = Provider.of<ThemeProvider>(context, listen: false);
-    return themeProv.inputBorderColor;
+    return themeProv.inputBorderColor; // ترجع اللون الذهبي الصريح
   }
       
   static Color textDark(BuildContext context) => const Color(0xFF0F172A);
