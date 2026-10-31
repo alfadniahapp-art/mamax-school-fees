@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/student.dart'; // هذا السطر هو الذي يحل مشكلة Gender
+import '../models/student.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
 
@@ -29,21 +29,14 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     _cls = s?.cls ?? 1;
     _hasReg = s?.hasReg ?? false;
     _hasExam = s?.hasExam ?? false;
-    _feeBase = TextEditingController();
-    _feeReg = TextEditingController();
-    _feeExam = TextEditingController();
-    _inst1 = TextEditingController();
-    _inst2 = TextEditingController();
-    _inst3 = TextEditingController();
+    _feeBase = TextEditingController(text: s != null ? s.feeBase.toStringAsFixed(0) : '');
+    _feeReg = TextEditingController(text: s != null ? s.feeReg.toStringAsFixed(0) : '');
+    _feeExam = TextEditingController(text: s != null ? s.feeExam.toStringAsFixed(0) : '');
+    _inst1 = TextEditingController(text: s != null ? s.inst1.toStringAsFixed(0) : '');
+    _inst2 = TextEditingController(text: s != null ? s.inst2.toStringAsFixed(0) : '');
+    _inst3 = TextEditingController(text: s != null ? s.inst3.toStringAsFixed(0) : '');
 
-    if (s != null) {
-      _feeBase.text = s.feeBase.toStringAsFixed(0);
-      _feeReg.text = s.feeReg.toStringAsFixed(0);
-      _feeExam.text = s.feeExam.toStringAsFixed(0);
-      _inst1.text = s.inst1.toStringAsFixed(0);
-      _inst2.text = s.inst2.toStringAsFixed(0);
-      _inst3.text = s.inst3.toStringAsFixed(0);
-    } else {
+    if (s == null) {
       _loadFees();
     }
   }
@@ -94,10 +87,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
-      appBar: AppBar(
-        title: Text(widget.student == null ? 'إضافة طالب جديد' : 'تعديل بيانات الطالب'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: Text(widget.student == null ? 'إضافة طالب' : 'تعديل طالب')),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -107,60 +97,17 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
               title: 'بيانات الطالب',
               icon: Icons.person,
               children: [
-                TextFormField(
-                  controller: _name,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الطالب بالكامل',
-                    prefixIcon: Icon(Icons.badge),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  validator: (v) => v!.isEmpty ? 'مطلوب' : null,
-                ),
+                TextFormField(controller: _name, decoration: const InputDecoration(labelText: 'اسم الطالب', filled: true, fillColor: Colors.white), validator: (v) => v!.isEmpty ? 'مطلوب' : null),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(
-                      child: DropdownButtonFormField<Stage>(
-                        value: _stage,
-                        decoration: const InputDecoration(
-                          labelText: 'المرحلة',
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
-                        onChanged: (v) { if (v != null) setState(() { _stage = v; if (_cls > stageCount(v)) _cls = 1; _loadFees(); }); },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<int>(
-                        value: _cls,
-                        decoration: const InputDecoration(
-                          labelText: 'الصف',
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        items: List.generate(stageCount(_stage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
-                        onChanged: (v) { if (v != null) setState(() { _cls = v; _loadFees(); }); },
-                      ),
-                    ),
+                    Expanded(child: DropdownButtonFormField<Stage>(value: _stage, decoration: const InputDecoration(labelText: 'المرحلة', filled: true, fillColor: Colors.white), items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(), onChanged: (v) { if (v != null) setState(() { _stage = v; if (_cls > stageCount(v)) _cls = 1; _loadFees(); }); })),
+                    const SizedBox(width: 10),
+                    Expanded(child: DropdownButtonFormField<int>(value: _cls, decoration: const InputDecoration(labelText: 'الصف', filled: true, fillColor: Colors.white), items: List.generate(stageCount(_stage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))), onChanged: (v) { if (v != null) setState(() { _cls = v; _loadFees(); }); })),
                   ],
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<Gender>(
-                  value: _gender,
-                  decoration: const InputDecoration(
-                    labelText: 'النوع',
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: Gender.boys, child: Text('بنين')),
-                    DropdownMenuItem(value: Gender.girls, child: Text('بنات')),
-                  ],
-                  onChanged: (v) { if (v != null) setState(() => _gender = v); },
-                ),
+                DropdownButtonFormField<Gender>(value: _gender, decoration: const InputDecoration(labelText: 'النوع', filled: true, fillColor: Colors.white), items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))], onChanged: (v) { if (v != null) setState(() => _gender = v); }),
               ],
             ),
             const SizedBox(height: 16),
@@ -168,18 +115,17 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
               title: 'الرسوم والأقساط',
               icon: Icons.payments,
               children: [
-                TextFormField(
-                  controller: _feeBase,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'الرسوم الأساسية',
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  onChanged: (_) => setState(_recalcInstallments),
-                ),
+                TextFormField(controller: _feeBase, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الرسوم الأساسية', filled: true, fillColor: Colors.white), onChanged: (_) => setState(_recalcInstallments)),
+                if (_hasReg) ...[
+                  const SizedBox(height: 10),
+                  TextFormField(controller: _feeReg, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'رسوم التسجيل', filled: true, fillColor: Colors.white), onChanged: (_) => setState(() {})),
+                ],
+                if (_hasExam) ...[
+                  const SizedBox(height: 10),
+                  TextFormField(controller: _feeExam, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'رسوم الامتحانات', filled: true, fillColor: Colors.white), onChanged: (_) => setState(() {})),
+                ],
                 const SizedBox(height: 16),
-                const Text('توزيع الأقساط (قابل للتعديل)', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
+                const Text('توزيع الأقساط', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -197,16 +143,11 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
               height: 55,
               child: ElevatedButton.icon(
                 onPressed: _save,
-                icon: const Icon(Icons.save, size: 22),
+                icon: const Icon(Icons.save),
                 label: const Text('حفظ البيانات', style: TextStyle(fontSize: 16)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary(context),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary(context), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             ),
-            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -216,21 +157,11 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   Widget _buildCard({required String title, required IconData icon, required List<Widget> children}) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 20, color: AppColors.primary(context)),
-              const SizedBox(width: 8),
-              Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context))),
-            ],
-          ),
+          Row(children: [Icon(icon, size: 20, color: AppColors.primary(context)), const SizedBox(width: 8), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context)))]),
           const Divider(height: 24),
           ...children,
         ],
