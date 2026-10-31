@@ -12,7 +12,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _pctA, _pctB, _pctC, _warnDays;
-  late TextEditingController _bankName, _bankAcc, _bankPhone, _pin;
+  late TextEditingController _bankName, _bankAcc, _bankPhone;
 
   @override
   void initState() {
@@ -25,7 +25,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _bankName = TextEditingController(text: s.bankAccountName);
     _bankAcc = TextEditingController(text: s.bankAccountNumber);
     _bankPhone = TextEditingController(text: s.bankPhone);
-    _pin = TextEditingController();
   }
 
   Future<void> _save() async {
@@ -39,12 +38,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bankAccountNumber: _bankAcc.text.trim(),
       bankPhone: _bankPhone.text.trim(),
     ));
-    if (_pin.text.length >= 4) {
-      await app.savePin(_pin.text.trim());
-    }
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم الحفظ')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final TextEditingController resetCtrl = TextEditingController();
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('استعادة كلمة السر'),
+        content: TextField(
+          controller: resetCtrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'كلمة السر الجديدة (4 أرقام على الأقل)'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text('تعيين')
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && resetCtrl.text.length >= 4) {
+      await context.read<AppProvider>().savePin(resetCtrl.text.trim());
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم تغيير كلمة السر بنجاح'), backgroundColor: AppColors.ok));
     }
   }
 
@@ -55,8 +78,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _card('كلمة السر (PIN)', [
-            TextField(controller: _pin, obscureText: true, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'كلمة سر جديدة (اتركها فارغة لعدم التغيير)')),
+          _card('الأمان والنسخ الاحتياطي', [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.lock_reset, color: AppColors.primary),
+              title: const Text('استعادة كلمة السر'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: _resetPassword,
+            ),
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.backup, color: AppColors.ok),
+              title: const Text('حفظ نسخة من البيانات (تصدير)'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () => context.read<AppProvider>().exportData(),
+            ),
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.restore, color: AppColors.partial),
+              title: const Text('استعادة نسخة احتياطية'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () async {
+                final success = await context.read<AppProvider>().importData();
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم استعادة البيانات بنجاح'), backgroundColor: AppColors.ok));
+                }
+              },
+            ),
           ]),
           _card('نسب الأقساط', [
             Row(
@@ -69,9 +119,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ]),
-          _card('التنبيهات', [
-            TextField(controller: _warnDays, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'التنبيه قبل (أيام)')),
-          ]),
           _card('حساب البنك', [
             TextField(controller: _bankName, decoration: const InputDecoration(labelText: 'اسم صاحب الحساب')),
             const SizedBox(height: 8),
@@ -80,7 +127,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextField(controller: _bankPhone, decoration: const InputDecoration(labelText: 'رقم الهاتف')),
           ]),
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: _save, child: const Text('حفظ الإعدادات')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            onPressed: _save, 
+            child: const Text('حفظ الإعدادات')
+          ),
         ],
       ),
     );
@@ -89,12 +140,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _card(String title, List<Widget> children) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 16)),
             const SizedBox(height: 12),
             ...children,
           ],
