@@ -97,7 +97,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg(context), // خلفية الثيم الملكية
+      backgroundColor: AppColors.bg(context),
       appBar: AppBar(
         title: const Text('إدارة وتسجيل الفصول', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
@@ -117,7 +117,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                 Expanded(
                   child: DropdownButtonFormField<Stage>(
                     value: _selectedStage,
-                    decoration: _inputDecoration('المرحلة'),
+                    decoration: _inputDecoration(context, 'المرحلة'),
                     items: stagesList.map((s) => DropdownMenuItem(value: s.stage, child: Text(s.name))).toList(),
                     onChanged: (v) => setState(() { _selectedStage = v!; if (_selectedClass > stageCount(v)) _selectedClass = 1; _loadClassFee(); }),
                   ),
@@ -126,7 +126,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     value: _selectedClass,
-                    decoration: _inputDecoration('الصف'),
+                    decoration: _inputDecoration(context, 'الصف'),
                     items: List.generate(stageCount(_selectedStage), (i) => DropdownMenuItem(value: i + 1, child: Text(classNames[i]))),
                     onChanged: (v) => setState(() => _selectedClass = v!),
                   ),
@@ -135,7 +135,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<Gender>(
                 value: _selectedGender,
-                decoration: _inputDecoration('النوع'),
+                decoration: _inputDecoration(context, 'النوع'),
                 items: const [DropdownMenuItem(value: Gender.boys, child: Text('بنين')), DropdownMenuItem(value: Gender.girls, child: Text('بنات'))],
                 onChanged: (v) => setState(() => _selectedGender = v!),
               ),
@@ -147,20 +147,20 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
             title: '2. رسوم الفصل وتوزيع الأقساط',
             icon: Icons.payments,
             children: [
-              TextField(controller: _baseFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration('الرسوم الأساسية'), onChanged: (_) => setState(_recalcInstallments)),
+              TextField(controller: _baseFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'الرسوم الأساسية'), onChanged: (_) => setState(_recalcInstallments)),
               const SizedBox(height: 16),
               Row(children: [
-                Expanded(child: TextField(controller: _inst1Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط أول'))),
+                Expanded(child: TextField(controller: _inst1Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قسط أول'))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _inst2Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط ثاني'))),
+                Expanded(child: TextField(controller: _inst2Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قسط ثاني'))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: _inst3Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قسط أخير'))),
+                Expanded(child: TextField(controller: _inst3Ctrl, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قسط أخير'))),
               ]),
               const SizedBox(height: 16),
               Row(children: [
-                Expanded(child: InkWell(onTap: () => _pickDate(true), child: InputDecorator(decoration: _inputDecoration('استحقاق القسط 2', suffixIcon: const Icon(Icons.calendar_today, size: 20)), child: Text(_due2 == null ? 'غير محدد' : dateStr(_due2), style: const TextStyle(fontSize: 13))))),
+                Expanded(child: InkWell(onTap: () => _pickDate(true), child: InputDecorator(decoration: _inputDecoration(context, 'استحقاق القسط 2', suffixIcon: const Icon(Icons.calendar_today, size: 20)), child: Text(_due2 == null ? 'غير محدد' : dateStr(_due2), style: const TextStyle(fontSize: 13))))),
                 const SizedBox(width: 10),
-                Expanded(child: InkWell(onTap: () => _pickDate(false), child: InputDecorator(decoration: _inputDecoration('استحقاق القسط 3', suffixIcon: const Icon(Icons.calendar_today, size: 20)), child: Text(_due3 == null ? 'غير محدد' : dateStr(_due3), style: const TextStyle(fontSize: 13))))),
+                Expanded(child: InkWell(onTap: () => _pickDate(false), child: InputDecorator(decoration: _inputDecoration(context, 'استحقاق القسط 3', suffixIcon: const Icon(Icons.calendar_today, size: 20)), child: Text(_due3 == null ? 'غير محدد' : dateStr(_due3), style: const TextStyle(fontSize: 13))))),
               ]),
               const SizedBox(height: 16),
               
@@ -173,7 +173,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               if (_includeReg) 
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: TextField(controller: _regFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قيمة رسوم التسجيل')),
+                  child: TextField(controller: _regFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قيمة رسوم التسجيل')),
                 ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
@@ -182,7 +182,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                 onChanged: (v) => setState(() => _includeExam = v),
               ),
               if (_includeExam) 
-                TextField(controller: _examFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration('قيمة رسوم الامتحانات')),
+                TextField(controller: _examFeeCtrl, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'قيمة رسوم الامتحانات')),
             ],
           ),
           const SizedBox(height: 20),
@@ -194,7 +194,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
               TextField(
                 controller: _studentsTextCtrl,
                 maxLines: 6,
-                decoration: _inputDecoration('محمد أحمد\nعلي خديوي\nعمر ياسر\n...', helperText: 'أدخل اسم كل طالب في سطر منفصل'),
+                decoration: _inputDecoration(context, 'محمد أحمد\nعلي خديوي\nعمر ياسر\n...', helperText: 'أدخل اسم كل طالب في سطر منفصل'),
               ),
             ],
           ),
@@ -221,14 +221,22 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String label, {String? helperText, Widget? suffixIcon}) {
+  // دالة موحدة لتزيين الحقول (مع الحدود الملونة)
+  InputDecoration _inputDecoration(BuildContext context, String label, {String? helperText, Widget? suffixIcon}) {
     return InputDecoration(
       labelText: label,
       helperText: helperText,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.surface(context), // حقل يأخذ لون البطاقة
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      fillColor: AppColors.surface(context),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // يقرأ اللون المختار
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.primary(context), width: 2),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
@@ -239,7 +247,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
@@ -295,7 +303,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface(context), 
         borderRadius: BorderRadius.circular(20), 
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
