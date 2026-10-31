@@ -39,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bankPhone: _bankPhone.text.trim(),
     ));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
       Navigator.pop(context);
     }
   }
@@ -58,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary(context), foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true), 
             child: const Text('تعيين')
           ),
@@ -73,15 +73,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProv = context.watch<ThemeProvider>();
+
     return Scaffold(
       appBar: AppBar(title: const Text('الإعدادات')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _card('المظهر والألوان', [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('الوضع الليلي (Dark Mode)'),
+              secondary: Icon(themeProv.isDark ? Icons.dark_mode : Icons.light_mode, color: AppColors.primary(context)),
+              value: themeProv.isDark,
+              onChanged: (v) => themeProv.toggleTheme(),
+            ),
+            const Divider(),
+            const Text('اللون الأساسي للتطبيق', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _colorDot(const Color(0xFF0F766E), themeProv), // زمردي
+                _colorDot(const Color(0xFF2563EB), themeProv), // أزرق
+                _colorDot(const Color(0xFF7C3AED), themeProv), // بنفسجي
+                _colorDot(const Color(0xFFDC2626), themeProv), // أحمر
+                _colorDot(const Color(0xFF1F2937), themeProv), // أسود داكن
+              ],
+            ),
+          ]),
           _card('الأمان والنسخ الاحتياطي', [
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.lock_reset, color: AppColors.primary),
+              leading: Icon(Icons.lock_reset, color: AppColors.primary(context)),
               title: const Text('استعادة كلمة السر'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: _resetPassword,
@@ -90,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.backup, color: AppColors.ok),
-              title: const Text('حفظ نسخة من البيانات (تصدير)'),
+              title: const Text('حفظ نسخة من البيانات'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => context.read<AppProvider>().exportData(),
             ),
@@ -128,11 +152,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
           const SizedBox(height: 20),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary(context), foregroundColor: Colors.white),
             onPressed: _save, 
             child: const Text('حفظ الإعدادات')
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _colorDot(Color color, ThemeProvider themeProv) {
+    final isSelected = themeProv.primaryColor == color;
+    return GestureDetector(
+      onTap: () => themeProv.changePrimaryColor(color),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+          boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 8)] : null,
+        ),
+        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
       ),
     );
   }
@@ -146,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 16)),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary(context), fontSize: 16)),
             const SizedBox(height: 12),
             ...children,
           ],
