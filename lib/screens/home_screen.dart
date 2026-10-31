@@ -9,6 +9,7 @@ import 'student_detail_screen.dart';
 import 'settings_screen.dart';
 import 'alerts_screen.dart';
 import 'lock_screen.dart';
+import 'class_management_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('رسومك الدراسية'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () {},
+          ),
           IconButton(
             icon: Badge(
               label: Text('${app.allAlerts.length}'),
@@ -58,12 +63,25 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(child: _buildList(list)),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {})),
-        backgroundColor: AppColors.primary(context),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('طالب جديد'),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'class_manage',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClassManagementScreen())).then((_) => setState(() {})),
+            backgroundColor: AppColors.secondary,
+            icon: const Icon(Icons.group),
+            label: const Text('إدارة الفصول'),
+          ),
+          const SizedBox(width: 10),
+          FloatingActionButton.extended(
+            heroTag: 'student_add',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {})),
+            backgroundColor: AppColors.primary(context),
+            icon: const Icon(Icons.add),
+            label: const Text('طالب جديد'),
+          ),
+        ],
       ),
     );
   }
@@ -108,10 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     DropdownMenuItem(value: Stage.middle, child: Text('متوسط')),
                     DropdownMenuItem(value: Stage.high, child: Text('ثانوي')),
                   ],
-                  onChanged: (v) => setState(() {
-                    _stageFilter = v;
-                    _clsFilter = null;
-                  }),
+                  onChanged: (v) => setState(() { _stageFilter = v; _clsFilter = null; }),
                 ),
               ),
               const SizedBox(width: 10),
