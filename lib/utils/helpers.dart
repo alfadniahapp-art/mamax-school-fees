@@ -11,7 +11,7 @@ String dateStr(DateTime? d) => d == null ? '—' : _dateFmt.format(d);
 class ThemeProvider extends ChangeNotifier {
   bool _isDark = false;
   Color _primaryColor = const Color(0xFF0B4A3D); // أخضر ملكي داكن
-  String _bgStyle = 'royal'; // royal, light, dark
+  String _bgStyle = 'royal'; // royal (ملكي فاتح), light (أبيض), dark (داكن)
 
   bool get isDark => _isDark;
   Color get primaryColor => _primaryColor;
@@ -21,29 +21,28 @@ class ThemeProvider extends ChangeNotifier {
   void changePrimaryColor(Color color) { _primaryColor = color; notifyListeners(); }
   void changeBgStyle(String style) { _bgStyle = style; notifyListeners(); }
 
-  // إنشاء لون خلفية مشتق من اللون الأساسي (فاتح جداً)
-  Color get derivedBackground => _bgStyle == 'dark' 
-      ? const Color(0xFF121212) 
-      : _primaryColor.withOpacity(0.04);
+  // اللون الخلفية: إذا اخترت داكن تصبح سوداء، وإلا تصبح فاتحة (أبيض أو ملكي)
+  Color get derivedBackground {
+    if (_bgStyle == 'dark') return const Color(0xFF121212);
+    if (_bgStyle == 'light') return const Color(0xFFF8FAFC);
+    // الوضع الملكي الافتراضي (لون الثيم بشفافية خفيفة جداً)
+    return _primaryColor.withOpacity(0.04);
+  }
 
-  // إنشاء لون حدود البطاقات مشتق من اللون الأساسي
   Color get derivedBorderColor => _primaryColor.withOpacity(0.2);
 }
 
 class AppColors {
   static Color primary(BuildContext context) => Theme.of(context).colorScheme.primary;
   
-  // الخلفية تأخذ اللون المشتق من الثيم
   static Color bg(BuildContext context) {
     final themeProv = Provider.of<ThemeProvider>(context);
     return themeProv.derivedBackground;
   }
   
-  // خلفية البطاقات
   static Color surface(BuildContext context) => 
       Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white;
 
-  // لون حدود البطاقات (يستخدم في كل مكان)
   static Color cardBorder(BuildContext context) {
     final themeProv = Provider.of<ThemeProvider>(context);
     return themeProv.derivedBorderColor;
