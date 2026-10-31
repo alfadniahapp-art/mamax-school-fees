@@ -76,13 +76,10 @@ class AppProvider extends ChangeNotifier {
   Future<void> deleteStudent(String id) async { students.removeWhere((e) => e.id == id); await _save(); }
   Student? getStudentById(String id) { try { return students.firstWhere((e) => e.id == id); } catch (_) { return null; } }
 
-  // --- التعديل الجديد هنا: ربط الدفعة بالخزينة ---
   Future<void> addPayment(String studentId, Payment p) async { 
-    // 1. إضافة الدفعة للطالب
     final s = students.firstWhere((e) => e.id == studentId); 
     s.payments.add(p); 
     
-    // 2. إضافة العملية تلقائياً إلى الخزينة
     final isCash = p.method == PaymentMethod.cash;
     final newTx = FinancialTransaction(
       id: newId(),
@@ -91,10 +88,9 @@ class AppProvider extends ChangeNotifier {
       entityName: s.name,
       amount: p.amount,
       date: p.date,
+      referenceNumber: p.ref
     );
     transactions.add(newTx);
-
-    // 3. الحفظ
     await _save(); 
   }
 
@@ -105,9 +101,21 @@ class AppProvider extends ChangeNotifier {
   }
   
   Future<void> addTransaction(FinancialTransaction tx) async { transactions.add(tx); await _save(); }
+  
+  // دوال التعديل والحذف للعمليات المالية
+  Future<void> updateTransaction(FinancialTransaction updatedTx) async {
+    final i = transactions.indexWhere((e) => e.id == updatedTx.id);
+    if (i > -1) transactions[i] = updatedTx;
+    await _save();
+  }
+
+  Future<void> deleteTransaction(String id) async {
+    transactions.removeWhere((e) => e.id == id);
+    await _save();
+  }
+
   Future<void> saveSettings(AppSettings s) async { settings = s; await _save(); }
 
-  // حساب رصيد الصندوق (كاش)
   double get cashBalance {
     double balance = 0;
     for (var tx in transactions) {
@@ -123,7 +131,6 @@ class AppProvider extends ChangeNotifier {
     return balance;
   }
 
-  // حساب رصيد البنك
   double get bankBalance {
     double balance = 0;
     for (var tx in transactions) {
