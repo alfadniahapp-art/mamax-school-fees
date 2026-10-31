@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_provider.dart';
-import 'screens/lock_screen.dart';
+import 'screens/splash_screen.dart';
 import 'utils/helpers.dart';
 
 void main() {
@@ -38,7 +38,7 @@ class MamaxApp extends StatelessWidget {
       themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'Tajawal',
+        fontFamily: 'Tahoma',
         colorScheme: ColorScheme.fromSeed(
           seedColor: themeProvider.primaryColor,
           brightness: Brightness.light,
@@ -46,11 +46,13 @@ class MamaxApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: themeProvider.primaryColor,
           foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
         ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'Tajawal',
+        fontFamily: 'Tahoma',
         colorScheme: ColorScheme.fromSeed(
           seedColor: themeProvider.primaryColor,
           brightness: Brightness.dark,
@@ -58,13 +60,15 @@ class MamaxApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: themeProvider.primaryColor,
           foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
         ),
       ),
       builder: (ctx, child) => Directionality(
         textDirection: TextDirection.rtl,
         child: child!,
       ),
-      home: const LockScreen(),
+      home: const SplashScreen(), // البداية من شاشة السبلاش
     );
   }
 }
