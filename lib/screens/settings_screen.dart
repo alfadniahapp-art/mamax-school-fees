@@ -39,35 +39,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bankPhone: _bankPhone.text.trim(),
     ));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
       Navigator.pop(context);
-    }
-  }
-
-  Future<void> _resetPassword() async {
-    final TextEditingController resetCtrl = TextEditingController();
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('استعادة كلمة السر'),
-        content: TextField(
-          controller: resetCtrl,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'كلمة السر الجديدة (4 أرقام على الأقل)'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary(context), foregroundColor: Colors.white),
-            onPressed: () => Navigator.pop(ctx, true), 
-            child: const Text('تعيين')
-          ),
-        ],
-      ),
-    );
-    if (confirm == true && resetCtrl.text.length >= 4) {
-      await context.read<AppProvider>().savePin(resetCtrl.text.trim());
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('✓ تم تغيير كلمة السر بنجاح'), backgroundColor: AppColors.ok));
     }
   }
 
@@ -80,6 +53,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _card('النسخ الاحتياطي', [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.backup, color: AppColors.ok),
+              title: const Text('حفظ نسخة من البيانات (تصدير)'),
+              onTap: () => context.read<AppProvider>().exportData(),
+            ),
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.restore, color: AppColors.partial),
+              title: const Text('استعادة نسخة احتياطية'),
+              onTap: () async {
+                final success = await context.read<AppProvider>().importData();
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم استعادة البيانات'), backgroundColor: AppColors.ok));
+                }
+              },
+            ),
+          ]),
           _card('المظهر والألوان', [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -100,15 +93,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _colorDot(const Color(0xFFDC2626), themeProv),
                 _colorDot(const Color(0xFF1F2937), themeProv),
               ],
-            ),
-          ]),
-          _card('الأمان', [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.lock_reset, color: AppColors.primary(context)),
-              title: const Text('استعادة كلمة السر'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: _resetPassword,
             ),
           ]),
           _card('نسب الأقساط', [
