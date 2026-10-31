@@ -43,6 +43,9 @@ jobs:
           # تعديل اسم التطبيق في AndroidManifest
           sed -i 's/android:label="mamax_school_fees"/android:label="رسومك الدراسية"/g' android/app/src/main/AndroidManifest.xml
 
+          # إضافة صلاحيات القراءة والكتابة (للملفات والنسخ الاحتياطي)
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
+
       - name: 📦 Install Dependencies
         run: flutter pub get
 
