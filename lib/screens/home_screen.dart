@@ -24,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _clsFilter;
   Gender? _genderFilter;
 
-  // متغيرات البحث في نافذة الدفع السريع
   String _quickSearch = '';
   Stage? _quickStage;
   int? _quickCls;
@@ -91,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // زر تسجيل الدفعة (يفتح نافذة البحث)
             _buildActionBtn('تسجيل دفعة', Icons.payment, const Color(0xFF10B981), () => _showQuickPayment(context, app)),
             _buildActionBtn('إضافة طالب', Icons.person_add, AppColors.primary(context), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {}))),
             _buildActionBtn('إدارة الفصول', Icons.group, const Color(0xFFD97706), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClassManagementScreen())).then((_) => setState(() {}))),
@@ -156,6 +154,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const Divider(),
                   
+                  // زر إضافة طالب جديد
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx); // إغلاق نافذة الدفع
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {}));
+                      },
+                      icon: const Icon(Icons.person_add, color: AppColors.primary(context)),
+                      label: const Text('إضافة طالب جديد', style: TextStyle(color: AppColors.primary(context), fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: AppColors.primary(context)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
                   // حقول البحث
                   TextField(
                     decoration: _inputDecoration(context, '', prefixIcon: Icons.search, hintText: 'بحث بالاسم...'),
