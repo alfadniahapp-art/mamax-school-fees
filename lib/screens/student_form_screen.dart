@@ -55,8 +55,9 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     _feeBase.text = fees['base']?.toStringAsFixed(0) ?? '0';
     _feeReg.text = fees['reg']?.toStringAsFixed(0) ?? '0';
     _feeExam.text = fees['exam']?.toStringAsFixed(0) ?? '0';
-    _hasReg = isFirstClass(_stage, _cls) && (double.tryParse(_feeReg.text) ?? 0) > 0;
-    _hasExam = isFinalClass(_stage, _cls) && (double.tryParse(_feeExam.text) ?? 0) > 0;
+    
+    // ملاحظة: تم إيقاف التفعيل التلقائي. المستخدم يحدد يدوياً.
+    
     _recalcInstallments();
   }
 
@@ -159,6 +160,41 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                   decoration: _inputDecoration(context, 'الرسوم الأساسية'),
                   onChanged: (_) => setState(_recalcInstallments),
                 ),
+                
+                // مفتاح تفعيل رسوم التسجيل (يدوي)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('شامل رسوم التسجيل'),
+                  value: _hasReg,
+                  onChanged: (v) => setState(() => _hasReg = v),
+                ),
+                if (_hasReg)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: TextFormField(
+                      controller: _feeReg,
+                      keyboardType: TextInputType.number,
+                      decoration: _inputDecoration(context, 'قيمة رسوم التسجيل'),
+                    ),
+                  ),
+
+                // مفتاح تفعيل رسوم الامتحانات (يدوي)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('شامل رسوم الامتحانات'),
+                  value: _hasExam,
+                  onChanged: (v) => setState(() => _hasExam = v),
+                ),
+                if (_hasExam)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: TextFormField(
+                      controller: _feeExam,
+                      keyboardType: TextInputType.number,
+                      decoration: _inputDecoration(context, 'قيمة رسوم الامتحانات'),
+                    ),
+                  ),
+                
                 const SizedBox(height: 16),
                 const Text('توزيع الأقساط (قابل للتعديل)', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
@@ -205,7 +241,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
       fillColor: AppColors.surface(context),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // تم تطبيق لون الحدود
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
