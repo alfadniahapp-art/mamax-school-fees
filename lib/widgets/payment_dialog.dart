@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/payment.dart';
 import '../models/student.dart';
+import '../models/settings.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
 
@@ -30,7 +31,9 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   late TextEditingController _amount;
   final _reference = TextEditingController();
   DateTime _date = DateTime.now();
-  bool _isFullPayment = false; // متغير لتحديد إذا كان السداد كاملاً
+  bool _isFullPayment = false;
+  
+  BankAccount? _selectedBankAccount; // الحساب المختار
 
   @override
   void initState() {
@@ -62,10 +65,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     if (amount <= 0) return;
 
     if (_isFullPayment) {
-      // سداد كامل: توزيع المبلغ على جميع البنود المتبقية
       double remainingToDistribute = amount;
-      
-      // ترتيب البنود حسب الأولوية (تسجيل، امتحانات، قسط أول، ثاني، ثالث)
       final types = <FeeType>[];
       if (student.hasReg && student.remainingFor(FeeType.reg) > 0) types.add(FeeType.reg);
       if (student.hasExam && student.remainingFor(FeeType.exam) > 0) types.add(FeeType.exam);
@@ -90,7 +90,6 @@ class _PaymentSheetState extends State<_PaymentSheet> {
         remainingToDistribute -= paidNow;
       }
     } else {
-      // سداد عادي لبند واحد
       await app.addPayment(widget.studentId, Payment(
         id: app.newId(),
         type: _type,
@@ -115,6 +114,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     final app = context.watch<AppProvider>();
     final student = app.getStudentById(widget.studentId)!;
     final rem = student.remaining;
+    final bankAccounts = app.settings.bankAccounts;
 
     final options = <FeeType>[];
     if (student.hasReg) options.add(FeeType.reg);
@@ -135,7 +135,6 @@ class _PaymentSheetState extends State<_PaymentSheet> {
             Text('تسجيل دفعة - ${student.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
             const SizedBox(height: 20),
 
-            // مفتاح السداد الكامل
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('سداد كامل المديونية', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -144,9 +143,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               onChanged: (v) {
                 setState(() {
                   _isFullPayment = v;
-                  if (v) {
-                    _amount.text = rem.toStringAsFixed(0);
-                  }
+                  if (v) _amount.text = rem.toStringAsFixed(0);
                 });
               },
             ),
@@ -175,6 +172,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0 ? 'أدخل مبلغاً صحيحاً' : null,
             ),
             const SizedBox(height: 16),
+            
             DropdownButtonFormField<PaymentMethod>(
               value: _method,
               decoration: const InputDecoration(labelText: 'طريقة التسديد'),
@@ -182,8 +180,46 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 DropdownMenuItem(value: PaymentMethod.cash, child: Text('💵 كاش')),
                 DropdownMenuItem(value: PaymentMethod.bank, child: Text('🏦 تحويل بنكي')),
               ],
-              onChanged: (v) { if (v != null) setState(() => _method = v); },
+              onChanged: (v) { 
+                if (v != null) {
+                  setState(() {
+                    _method = v;
+                    _selectedBankAccount = null; // إعادة تعيين الحساب
+                  });
+                } 
+              },
             ),
+
+            // عرض الحسابات البنكية عند اختيار البنك
+            if (_method == PaymentMethod.bank) ...[
+              const SizedBox(height: 16),
+              if (bankAccounts.isEmpty)
+                const Text('لا توجد حسابات بنكية مضافة. يرجى إضافتها من الإعدادات.', style: TextStyle(color: Colors.red, fontSize: 12))
+              else
+                DropdownButtonFormField<BankAccount>(
+                  value: _selectedBankAccount,
+                  decoration: const InputDecoration(labelText: 'اختر الحساب البنكي'),
+                  items: bankAccounts.map((b) => DropdownMenuItem(value: b, child: Text(b.bankName))).toList(),
+                  onChanged: (v) => setState(() => _selectedBankAccount = v),
+                ),
+              
+              if (_selectedBankAccount != null)
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.bg(context), borderRadius: BorderRadius.circular(8)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('اسم البنك: ${_selectedBankAccount!.bankName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text('اسم صاحب الحساب: ${_selectedBankAccount!.accountName}'),
+                      Text('رقم الحساب: ${_selectedBankAccount!.accountNumber}'),
+                      Text('رقم الهاتف: ${_selectedBankAccount!.phone}'),
+                    ],
+                  ),
+                ),
+            ],
+
             const SizedBox(height: 16),
             TextFormField(
               controller: _reference,
