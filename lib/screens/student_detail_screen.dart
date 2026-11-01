@@ -4,7 +4,6 @@ import '../models/student.dart';
 import '../models/payment.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
-import '../utils/receipt_generator.dart';
 import '../widgets/payment_dialog.dart';
 import 'student_form_screen.dart';
 
@@ -15,7 +14,10 @@ class StudentDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
-    final s = app.getStudentById(studentId)!;
+    final s = app.getStudentById(studentId);
+    
+    if (s == null) return const Scaffold(body: Center(child: Text('الطالب غير موجود')));
+
     final pct = s.paidPct;
     final c = pct >= 1 ? AppColors.ok : pct > 0 ? AppColors.partial : AppColors.none;
 
@@ -26,15 +28,24 @@ class StudentDetailScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         actions: [
+          // زر التعديل (القلم)
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'تعديل بيانات الطالب',
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentFormScreen(student: s))).then((_) => (context as Element).markNeedsBuild()),
+          ),
+          // زر الحذف (سلة المهملات) بجانب القلم مباشرة
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            tooltip: 'حذف الطالب',
+            onPressed: () => _confirmDelete(context, app, s),
           ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // البطاقة العلوية
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -86,6 +97,32 @@ class StudentDetailScreen extends StatelessWidget {
     );
   }
 
+  // دالة تأكيد الحذف
+  void _confirmDelete(BuildContext context, AppProvider app, Student s) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حذف الطالب'),
+        content: Text('هل أنت متأكد من حذف «${s.name}» نهائياً؟\n\nسيتم حذف جميع دفعاته أيضاً.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              app.deleteStudent(s.id);
+              Navigator.pop(ctx); // إغلاق النافذة
+              Navigator.pop(context); // العودة للشاشة الرئيسية
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.none),
+            child: const Text('حذف', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _whiteStat(String label, String value) {
     return Column(
       children: [
@@ -101,17 +138,12 @@ class StudentDetailScreen extends StatelessWidget {
     final isDone = rem == 0;
     final c = isDone ? AppColors.ok : paid > 0 ? AppColors.partial : AppColors.none;
 
-    // البحث عن آخر دفعة لهذا القسط لطباعة الإيصال
-    final lastPayment = s.payments.where((p) => p.type == type).isNotEmpty 
-        ? s.payments.where((p) => p.type == type).reduce((a, b) => a.date.isAfter(b.date) ? a : b)
-        : null;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder(context), width: 1),
+        border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Padding(
@@ -140,28 +172,13 @@ class StudentDetailScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('المبلغ الأصلي: ${money(amount)}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
-                Row(
-                  children: [
-                    if (lastPayment != null)
-                      IconButton(
-                        icon: const Icon(Icons.print, color: Colors.blue, size: 20),
-                        tooltip: 'طباعة إيصال آخر دفعة',
-                        onPressed: () => ReceiptGenerator.printReceipt(
-                          student: s,
-                          payment: lastPayment,
-                          settings: context.read<AppProvider>().settings,
-                          remainingAfterPayment: rem,
-                        ),
-                      ),
-                    if (!isDone)
-                      TextButton.icon(
-                        onPressed: () => showPaymentDialog(context, s, presetType: type, presetAmount: rem),
-                        icon: const Icon(Icons.payment, size: 18),
-                        label: const Text('دفع الآن'),
-                        style: TextButton.styleFrom(foregroundColor: AppColors.primary(context)),
-                      ),
-                  ],
-                ),
+                if (!isDone)
+                  TextButton.icon(
+                    onPressed: () => showPaymentDialog(context, s, presetType: type, presetAmount: rem),
+                    icon: const Icon(Icons.payment, size: 18),
+                    label: const Text('دفع الآن'),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.primary(context)),
+                  ),
               ],
             ),
           ],
