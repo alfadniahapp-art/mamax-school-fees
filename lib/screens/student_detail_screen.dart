@@ -81,20 +81,19 @@ class StudentDetailScreen extends StatelessWidget {
             ),
           ),
           
-          // زر سداد كامل المديونية (يظهر فقط إذا كان هناك مبلغ متبقٍ)
+          // زر سداد كامل المديونية
           if (s.remaining > 0) ...[
             const SizedBox(height: 20),
             SizedBox(
               height: 55,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // فتح نموذج الدفع مع تحديد "سداد كامل"
                   showPaymentDialog(context, s, presetType: FeeType.inst1, presetAmount: s.remaining);
                 },
                 icon: const Icon(Icons.check_circle, color: Colors.white),
                 label: Text('سداد كامل المديونية (${money(s.remaining)})', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.ok, // لون أخضر
+                  backgroundColor: AppColors.ok,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 5,
@@ -108,6 +107,7 @@ class StudentDetailScreen extends StatelessWidget {
           Text('سجل الأقساط والرسوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark(context))),
           const SizedBox(height: 12),
           
+          // عرض الأقساط
           if (s.hasReg) _buildInstCard(context, s, FeeType.reg, 'رسوم التسجيل', s.feeReg),
           _buildInstCard(context, s, FeeType.inst1, 'القسط الأول', s.inst1),
           _buildInstCard(context, s, FeeType.inst2, 'القسط الثاني', s.inst2),
