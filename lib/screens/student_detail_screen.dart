@@ -28,13 +28,11 @@ class StudentDetailScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         actions: [
-          // زر التعديل (القلم)
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'تعديل بيانات الطالب',
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StudentFormScreen(student: s))).then((_) => (context as Element).markNeedsBuild()),
           ),
-          // زر الحذف (سلة المهملات) بجانب القلم مباشرة
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
             tooltip: 'حذف الطالب',
@@ -82,6 +80,30 @@ class StudentDetailScreen extends StatelessWidget {
               ],
             ),
           ),
+          
+          // زر سداد كامل المديونية (يظهر فقط إذا كان هناك مبلغ متبقٍ)
+          if (s.remaining > 0) ...[
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 55,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // فتح نموذج الدفع مع تحديد "سداد كامل"
+                  showPaymentDialog(context, s, presetType: FeeType.inst1, presetAmount: s.remaining);
+                },
+                icon: const Icon(Icons.check_circle, color: Colors.white),
+                label: Text('سداد كامل المديونية (${money(s.remaining)})', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.ok, // لون أخضر
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 5,
+                  shadowColor: AppColors.ok.withOpacity(0.5),
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 24),
           Text('سجل الأقساط والرسوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark(context))),
           const SizedBox(height: 12),
@@ -97,7 +119,6 @@ class StudentDetailScreen extends StatelessWidget {
     );
   }
 
-  // دالة تأكيد الحذف
   void _confirmDelete(BuildContext context, AppProvider app, Student s) {
     showDialog(
       context: context,
@@ -105,15 +126,12 @@ class StudentDetailScreen extends StatelessWidget {
         title: const Text('حذف الطالب'),
         content: Text('هل أنت متأكد من حذف «${s.name}» نهائياً؟\n\nسيتم حذف جميع دفعاته أيضاً.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('إلغاء'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           ElevatedButton(
             onPressed: () {
               app.deleteStudent(s.id);
-              Navigator.pop(ctx); // إغلاق النافذة
-              Navigator.pop(context); // العودة للشاشة الرئيسية
+              Navigator.pop(ctx);
+              Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.none),
             child: const Text('حذف', style: TextStyle(color: Colors.white)),
