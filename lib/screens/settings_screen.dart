@@ -99,6 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           _buildCard('المظهر والألوان', [
+            // اللون الأساسي
             const Text('اللون الأساسي للتطبيق:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -108,11 +109,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _colorDot(const Color(0xFF0B4A3D), themeProv, 'primary'),
                 _colorDot(const Color(0xFF2563EB), themeProv, 'primary'),
                 _colorDot(const Color(0xFF7C3AED), themeProv, 'primary'),
-                _colorDot(const Color(0xFF1F2937), themeProv, 'primary'),
+                _pickColorBtn(context, themeProv, 'primary'), // منتقي اللون الأساسي
               ],
             ),
             const Divider(height: 30),
             
+            // لون حدود البطاقات
             const Text('لون حدود البطاقات:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -127,6 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(height: 30),
 
+            // لون حدود مربعات الإدخال
             const Text('لون حدود مربعات الإدخال:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -141,6 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Divider(height: 30),
 
+            // لون حدود أزرار الاختيار
             const Text('لون حدود أزرار الاختيار:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -242,7 +246,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     if (selected != null) {
-      if (type == 'cardBorder') {
+      if (type == 'primary') {
+        themeProv.changePrimaryColor(selected);
+      } else if (type == 'cardBorder') {
         themeProv.changeCardBorderColor(selected.withOpacity(0.6));
       } else if (type == 'inputBorder') {
         themeProv.changeInputBorderColor(selected);
