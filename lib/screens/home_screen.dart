@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const Divider(),
                   
-                  // زر إضافة طالب جديد
+                  // زر إضافة طالب جديد (تم إصلاح خطأ const)
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -162,8 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.pop(ctx); // إغلاق نافذة الدفع
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {}));
                       },
-                      icon: const Icon(Icons.person_add, color: AppColors.primary(context)),
-                      label: const Text('إضافة طالب جديد', style: TextStyle(color: AppColors.primary(context), fontWeight: FontWeight.bold)),
+                      icon: Icon(Icons.person_add, color: AppColors.primary(context)),
+                      label: Text('إضافة طالب جديد', style: TextStyle(color: AppColors.primary(context), fontWeight: FontWeight.bold)),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(color: AppColors.primary(context)),
