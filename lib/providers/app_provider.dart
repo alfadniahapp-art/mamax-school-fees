@@ -32,7 +32,7 @@ class AppProvider extends ChangeNotifier {
     isLoading = true;
     final prefs = await SharedPreferences.getInstance();
     _pinCode = prefs.getString(_kPin) ?? '1234';
-    isUnlocked = prefs.getBool(_kUnlocked) ?? false; // استعادة حالة الدخول
+    isUnlocked = prefs.getBool(_kUnlocked) ?? false;
 
     final s = prefs.getString(_kStudents);
     if (s != null) {
@@ -228,6 +228,7 @@ class AppProvider extends ChangeNotifier {
       'pin': _pinCode,
     });
     
+    // تسمية الملف الجديدة
     final fileName = 'Mamx_For_Schools_${DateTime.now().millisecondsSinceEpoch}.json';
     
     final file = XFile.fromData(
