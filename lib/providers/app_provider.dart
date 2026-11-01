@@ -24,6 +24,7 @@ class AppProvider extends ChangeNotifier {
   static const _kPin = 'app_pin_v1';
   static const _kTransactions = 'transactions_v1';
   static const _kClassFees = 'class_fees_v1';
+  static const _kUnlocked = 'is_unlocked_v1'; // حفظ حالة الدخول
 
   Map<String, double> _classFees = {};
 
@@ -31,6 +32,7 @@ class AppProvider extends ChangeNotifier {
     isLoading = true;
     final prefs = await SharedPreferences.getInstance();
     _pinCode = prefs.getString(_kPin) ?? '1234';
+    isUnlocked = prefs.getBool(_kUnlocked) ?? false; // استعادة حالة الدخول
 
     final s = prefs.getString(_kStudents);
     if (s != null) {
@@ -96,8 +98,22 @@ class AppProvider extends ChangeNotifier {
   }
 
   bool checkPin(String input) => input == _pinCode;
-  void unlock() { isUnlocked = true; notifyListeners(); }
-  void lock() { isUnlocked = false; notifyListeners(); }
+  
+  // دوال الدخول والخروج مع حفظ الحالة
+  void unlock() async {
+    isUnlocked = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kUnlocked, true);
+  }
+  
+  void lock() async {
+    isUnlocked = false;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kUnlocked, false);
+  }
+
   String newId() => _uuid.v4();
 
   Future<void> addStudent(Student s) async {
