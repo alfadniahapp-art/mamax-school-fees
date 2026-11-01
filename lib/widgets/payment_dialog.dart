@@ -45,14 +45,17 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     _amount = TextEditingController(
       text: widget.presetAmount != null ? widget.presetAmount!.toStringAsFixed(0) : (rem > 0 ? rem.toStringAsFixed(0) : ''),
     );
+    if (widget.presetAmount != null && widget.presetAmount == student.remaining) {
+      _isFullPayment = true;
+    }
   }
 
   FeeType _firstUnpaidType(Student s) {
-    if (s.hasReg && s.remainingFor(FeeType.reg) > 0) return FeeType.reg;
-    if (s.hasExam && s.remainingFor(FeeType.exam) > 0) return FeeType.exam;
     if (s.remainingFor(FeeType.inst1) > 0) return FeeType.inst1;
     if (s.remainingFor(FeeType.inst2) > 0) return FeeType.inst2;
     if (s.remainingFor(FeeType.inst3) > 0) return FeeType.inst3;
+    if (s.hasReg && s.remainingFor(FeeType.reg) > 0) return FeeType.reg;
+    if (s.hasExam && s.remainingFor(FeeType.exam) > 0) return FeeType.exam;
     return FeeType.inst1;
   }
 
@@ -72,43 +75,17 @@ class _PaymentSheetState extends State<_PaymentSheet> {
 
     final bankAccId = _method == PaymentMethod.bank ? _selectedBankAccount!.accountNumber : '';
 
-    if (_isFullPayment) {
-      double remainingToDistribute = amount;
-      final types = <FeeType>[];
-      if (student.hasReg && student.remainingFor(FeeType.reg) > 0) types.add(FeeType.reg);
-      if (student.hasExam && student.remainingFor(FeeType.exam) > 0) types.add(FeeType.exam);
-      if (student.remainingFor(FeeType.inst1) > 0) types.add(FeeType.inst1);
-      if (student.remainingFor(FeeType.inst2) > 0) types.add(FeeType.inst2);
-      if (student.remainingFor(FeeType.inst3) > 0) types.add(FeeType.inst3);
-
-      for (var type in types) {
-        if (remainingToDistribute <= 0) break;
-        final rem = student.remainingFor(type);
-        final paidNow = remainingToDistribute >= rem ? rem : remainingToDistribute;
-        
-        await app.addPayment(widget.studentId, Payment(
-          id: app.newId(),
-          type: type,
-          amount: paidNow,
-          method: _method,
-          reference: _reference.text.trim(),
-          date: _date,
-          bankAccountId: bankAccId,
-        ));
-        
-        remainingToDistribute -= paidNow;
-      }
-    } else {
-      await app.addPayment(widget.studentId, Payment(
-        id: app.newId(),
-        type: _type,
-        amount: amount,
-        method: _method,
-        reference: _reference.text.trim(),
-        date: _date,
-        bankAccountId: bankAccId,
-      ));
-    }
+    // تسجيل الدفعة
+    await app.addPayment(widget.studentId, Payment(
+      id: app.newId(),
+      type: _isFullPayment ? FeeType.inst1 : _type, // النوع الفعلي
+      amount: amount,
+      method: _method,
+      reference: _reference.text.trim(),
+      date: _date,
+      bankAccountId: bankAccId,
+      isFullPayment: _isFullPayment, // العلم الذي يخبر النظام أن هذه دفعة كاملة
+    ));
 
     if (mounted) {
       Navigator.pop(context);
@@ -145,6 +122,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
             Text('تسجيل دفعة - ${student.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
             const SizedBox(height: 20),
 
+            // مفتاح السداد الكامل
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('سداد كامل المديونية', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -153,12 +131,18 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               onChanged: (v) {
                 setState(() {
                   _isFullPayment = v;
-                  if (v) _amount.text = rem.toStringAsFixed(0);
+                  if (v) {
+                    _amount.text = rem.toStringAsFixed(0);
+                  } else {
+                    final firstRem = student.remainingFor(_type);
+                    _amount.text = firstRem.toStringAsFixed(0);
+                  }
                 });
               },
             ),
             const Divider(),
 
+            // يختفي حقل نوع الرسوم عند تفعيل السداد الكامل
             if (!_isFullPayment) ...[
               DropdownButtonFormField<FeeType>(
                 value: _type,
@@ -172,12 +156,13 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               const SizedBox(height: 16),
             ],
 
+            // حقل المبلغ يظهر دائماً
             TextFormField(
               controller: _amount,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'المبلغ',
-                helperText: _isFullPayment ? 'سيتم توزيع المبلغ على جميع البنود' : 'المتبقي: ${money(rem)}',
+                labelText: _isFullPayment ? 'المبلغ الإجمالي للسداد' : 'المبلغ',
+                helperText: _isFullPayment ? 'سيتم إلغاء جميع الأقساط' : 'المتبقي: ${money(rem)}',
               ),
               validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0 ? 'أدخل مبلغاً صحيحاً' : null,
             ),
@@ -200,6 +185,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               },
             ),
 
+            // خيارات الحساب البنكي
             if (_method == PaymentMethod.bank) ...[
               const SizedBox(height: 16),
               if (bankAccounts.isEmpty)
