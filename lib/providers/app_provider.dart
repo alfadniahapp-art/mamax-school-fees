@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart'; // ضروري لإنشاء الملف
+import 'package:path_provider/path_provider.dart';
 import '../models/student.dart';
 import '../models/payment.dart';
 import '../models/settings.dart';
@@ -39,27 +39,21 @@ class AppProvider extends ChangeNotifier {
     if (s != null) {
       try {
         students = (jsonDecode(s) as List).map((e) => Student.fromJson(e)).toList();
-      } catch (e) {
-        debugPrint('$e');
-      }
+      } catch (e) { debugPrint('$e'); }
     }
 
     final tx = prefs.getString(_kTransactions);
     if (tx != null) {
       try {
         transactions = (jsonDecode(tx) as List).map((e) => FinancialTransaction.fromJson(e)).toList();
-      } catch (e) {
-        debugPrint('$e');
-      }
+      } catch (e) { debugPrint('$e'); }
     }
 
     final st = prefs.getString(_kSettings);
     if (st != null) {
       try {
         settings = AppSettings.fromJson(jsonDecode(st));
-      } catch (e) {
-        debugPrint('$e');
-      }
+      } catch (e) { debugPrint('$e'); }
     }
 
     final cf = prefs.getString(_kClassFees);
@@ -67,9 +61,7 @@ class AppProvider extends ChangeNotifier {
       try {
         final Map<String, dynamic> decoded = jsonDecode(cf);
         _classFees = decoded.map((key, value) => MapEntry(key, (value as num).toDouble()));
-      } catch (e) {
-        debugPrint('$e');
-      }
+      } catch (e) { debugPrint('$e'); }
     }
     isLoading = false;
     notifyListeners();
@@ -116,40 +108,27 @@ class AppProvider extends ChangeNotifier {
 
   String newId() => _uuid.v4();
 
-  Future<void> addStudent(Student s) async {
-    students.add(s);
-    await _save();
-  }
-
-  Future<void> addMultipleStudents(List<Student> newStudents) async {
-    students.addAll(newStudents);
-    await _save();
-  }
-
-  Future<void> updateStudent(Student s) async {
-    final i = students.indexWhere((e) => e.id == s.id);
-    if (i > -1) students[i] = s;
-    await _save();
-  }
-
-  Future<void> deleteStudent(String id) async {
-    students.removeWhere((e) => e.id == id);
-    await _save();
-  }
-
-  Student? getStudentById(String id) {
-    try {
-      return students.firstWhere((e) => e.id == id);
-    } catch (_) {
-      return null;
-    }
-  }
+  Future<void> addStudent(Student s) async { students.add(s); await _save(); }
+  Future<void> addMultipleStudents(List<Student> newStudents) async { students.addAll(newStudents); await _save(); }
+  Future<void> updateStudent(Student s) async { final i = students.indexWhere((e) => e.id == s.id); if (i > -1) students[i] = s; await _save(); }
+  Future<void> deleteStudent(String id) async { students.removeWhere((e) => e.id == id); await _save(); }
+  Student? getStudentById(String id) { try { return students.firstWhere((e) => e.id == id); } catch (_) { return null; } }
 
   Future<void> addPayment(String studentId, Payment p) async {
     final s = students.firstWhere((e) => e.id == studentId);
     s.payments.add(p);
 
     final isCash = p.method == PaymentMethod.cash;
+    
+    // البحث عن اسم البنك لربطه بالعملية
+    String bankName = '';
+    String accHolder = '';
+    if (!isCash && p.bankAccountId.isNotEmpty) {
+      final acc = settings.bankAccounts.firstWhere((b) => b.accountNumber == p.bankAccountId, orElse: () => BankAccount());
+      bankName = acc.bankName;
+      accHolder = acc.accountName;
+    }
+
     final newTx = FinancialTransaction(
       id: newId(),
       type: 'deposit',
@@ -158,6 +137,9 @@ class AppProvider extends ChangeNotifier {
       amount: p.amount,
       date: p.date,
       referenceNumber: p.reference,
+      bankAccountId: p.bankAccountId,
+      bankName: bankName,
+      accountHolderName: accHolder,
     );
     transactions.add(newTx);
     await _save();
@@ -169,27 +151,12 @@ class AppProvider extends ChangeNotifier {
     await _save();
   }
 
-  Future<void> addTransaction(FinancialTransaction tx) async {
-    transactions.add(tx);
-    await _save();
-  }
+  Future<void> addTransaction(FinancialTransaction tx) async { transactions.add(tx); await _save(); }
+  Future<void> updateTransaction(FinancialTransaction updatedTx) async { final i = transactions.indexWhere((e) => e.id == updatedTx.id); if (i > -1) transactions[i] = updatedTx; await _save(); }
+  Future<void> deleteTransaction(String id) async { transactions.removeWhere((e) => e.id == id); await _save(); }
+  Future<void> saveSettings(AppSettings s) async { settings = s; await _save(); }
 
-  Future<void> updateTransaction(FinancialTransaction updatedTx) async {
-    final i = transactions.indexWhere((e) => e.id == updatedTx.id);
-    if (i > -1) transactions[i] = updatedTx;
-    await _save();
-  }
-
-  Future<void> deleteTransaction(String id) async {
-    transactions.removeWhere((e) => e.id == id);
-    await _save();
-  }
-
-  Future<void> saveSettings(AppSettings s) async {
-    settings = s;
-    await _save();
-  }
-
+  // حساب رصيد الصندوق (كاش)
   double get cashBalance {
     double balance = 0;
     for (var tx in transactions) {
@@ -205,10 +172,27 @@ class AppProvider extends ChangeNotifier {
     return balance;
   }
 
+  // حساب رصيد البنك الإجمالي (جميع الحسابات)
   double get bankBalance {
     double balance = 0;
     for (var tx in transactions) {
       if (tx.method == 'bank') {
+        if (tx.type == 'deposit') balance += tx.amount;
+        if (tx.type == 'withdraw') balance -= tx.amount;
+        if (tx.type == 'transfer') {
+          if (tx.toAccount == 'bank') balance += tx.amount;
+          if (tx.fromAccount == 'bank') balance -= tx.amount;
+        }
+      }
+    }
+    return balance;
+  }
+
+  // حساب رصيد حساب بنكي معين بناءً على رقم الحساب
+  double getBankAccountBalance(String accountNumber) {
+    double balance = 0;
+    for (var tx in transactions) {
+      if (tx.method == 'bank' && tx.bankAccountId == accountNumber) {
         if (tx.type == 'deposit') balance += tx.amount;
         if (tx.type == 'withdraw') balance -= tx.amount;
         if (tx.type == 'transfer') {
@@ -228,17 +212,12 @@ class AppProvider extends ChangeNotifier {
       'pin': _pinCode,
     });
     
-    // إنشاء الملف مؤقتاً باسمنا المخصص
     final directory = await getTemporaryDirectory();
     final fileName = 'Mamx_For_Schools.json';
     final file = File('${directory.path}/$fileName');
     await file.writeAsString(data);
 
-    // مشاركة الملف
-    await Share.shareXFiles(
-      [XFile(file.path, name: fileName, mimeType: 'application/json')], 
-      text: 'نسخة احتياطية من بيانات رسوم الطلاب'
-    );
+    await Share.shareXFiles([XFile(file.path, name: fileName, mimeType: 'application/json')], text: 'نسخة احتياطية من بيانات رسوم الطلاب');
   }
 
   Future<bool> importData() async {
@@ -252,9 +231,7 @@ class AppProvider extends ChangeNotifier {
         if (data['pin'] != null) _pinCode = data['pin'];
         await _save();
         return true;
-      } catch (e) {
-        return false;
-      }
+      } catch (e) { return false; }
     }
     return false;
   }
@@ -278,26 +255,17 @@ class AppProvider extends ChangeNotifier {
     final required = s.amountFor(t);
     final paid = s.paidFor(t);
     if (paid >= required) return;
-
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(due.year, due.month, due.day);
     final days = target.difference(today).inDays;
-
     final warnDaysList = [settings.warnDays1, settings.warnDays2, settings.warnDays3];
     bool shouldAlert = false;
     for (var warnDay in warnDaysList) {
-      if (days <= warnDay && days >= 0) {
-        shouldAlert = true;
-        break;
-      }
+      if (days <= warnDay && days >= 0) { shouldAlert = true; break; }
     }
-
-    if (days < 0) {
-      out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': true, 'due': due});
-    } else if (shouldAlert) {
-      out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': false, 'due': due});
-    }
+    if (days < 0) out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': true, 'due': due});
+    else if (shouldAlert) out.add({'student': s, 'type': t, 'days': days, 'remaining': required - paid, 'overdue': false, 'due': due});
   }
 
   List<Student> filterStudents({String search = '', Stage? stage, int? cls}) {
