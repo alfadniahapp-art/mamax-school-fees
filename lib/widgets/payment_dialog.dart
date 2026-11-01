@@ -75,16 +75,15 @@ class _PaymentSheetState extends State<_PaymentSheet> {
 
     final bankAccId = _method == PaymentMethod.bank ? _selectedBankAccount!.accountNumber : '';
 
-    // تسجيل الدفعة
     await app.addPayment(widget.studentId, Payment(
       id: app.newId(),
-      type: _isFullPayment ? FeeType.inst1 : _type, // النوع الفعلي
+      type: _isFullPayment ? FeeType.inst1 : _type,
       amount: amount,
       method: _method,
       reference: _reference.text.trim(),
       date: _date,
       bankAccountId: bankAccId,
-      isFullPayment: _isFullPayment, // العلم الذي يخبر النظام أن هذه دفعة كاملة
+      isFullPayment: _isFullPayment,
     ));
 
     if (mounted) {
@@ -122,7 +121,6 @@ class _PaymentSheetState extends State<_PaymentSheet> {
             Text('تسجيل دفعة - ${student.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
             const SizedBox(height: 20),
 
-            // مفتاح السداد الكامل
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('سداد كامل المديونية', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -142,7 +140,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
             ),
             const Divider(),
 
-            // يختفي حقل نوع الرسوم عند تفعيل السداد الكامل
+            // يختفي حقل النوع عند تفعيل السداد الكامل
             if (!_isFullPayment) ...[
               DropdownButtonFormField<FeeType>(
                 value: _type,
@@ -156,7 +154,6 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               const SizedBox(height: 16),
             ],
 
-            // حقل المبلغ يظهر دائماً
             TextFormField(
               controller: _amount,
               keyboardType: TextInputType.number,
@@ -185,7 +182,6 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               },
             ),
 
-            // خيارات الحساب البنكي
             if (_method == PaymentMethod.bank) ...[
               const SizedBox(height: 16),
               if (bankAccounts.isEmpty)
