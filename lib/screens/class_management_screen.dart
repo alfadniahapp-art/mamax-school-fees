@@ -231,7 +231,7 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
       fillColor: AppColors.surface(context),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // يقرأ اللون المختار
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -279,7 +279,20 @@ class _ClassManagementScreenState extends State<ClassManagementScreen> {
                         child: TextFormField(
                           initialValue: fee.toStringAsFixed(0),
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()),
+                          // تم تطبيق الحدود الملونة هنا
+                          decoration: InputDecoration(
+                            isDense: true,
+                            filled: true,
+                            fillColor: AppColors.surface(context),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: AppColors.primary(context), width: 2),
+                            ),
+                          ),
                           onChanged: (v) {
                             final newFee = double.tryParse(v) ?? 0;
                             context.read<AppProvider>().setClassFee(key, newFee);
