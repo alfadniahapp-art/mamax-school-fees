@@ -24,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _clsFilter;
   Gender? _genderFilter;
 
+  // متغيرات البحث في نافذة الدفع السريع
   String _quickSearch = '';
   Stage? _quickStage;
   int? _quickCls;
@@ -90,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            // زر تسجيل الدفعة (يفتح نافذة البحث)
             _buildActionBtn('تسجيل دفعة', Icons.payment, const Color(0xFF10B981), () => _showQuickPayment(context, app)),
             _buildActionBtn('إضافة طالب', Icons.person_add, AppColors.primary(context), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentFormScreen())).then((_) => setState(() {}))),
             _buildActionBtn('إدارة الفصول', Icons.group, const Color(0xFFD97706), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClassManagementScreen())).then((_) => setState(() {}))),
@@ -119,12 +121,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // نافذة تسجيل دفعة سريعة
   void _showQuickPayment(BuildContext context, AppProvider app) {
-    if (app.students.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أضف طالباً أولاً')));
-      return;
-    }
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -132,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            // الفلترة
             var filtered = app.students.where((s) {
               if (_quickStage != null && s.stage != _quickStage) return false;
               if (_quickCls != null && s.cls != _quickCls) return false;
@@ -157,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const Divider(),
                   
+                  // حقول البحث
                   TextField(
                     decoration: _inputDecoration(context, '', prefixIcon: Icons.search, hintText: 'بحث بالاسم...'),
                     onChanged: (v) => setModalState(() => _quickSearch = v.trim()),
@@ -328,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
       fillColor: AppColors.surface(context),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // الحدود الملونة
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
