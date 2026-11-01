@@ -33,7 +33,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   DateTime _date = DateTime.now();
   bool _isFullPayment = false;
   
-  BankAccount? _selectedBankAccount; // الحساب المختار
+  BankAccount? _selectedBankAccount;
 
   @override
   void initState() {
@@ -58,11 +58,19 @@ class _PaymentSheetState extends State<_PaymentSheet> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    if (_method == PaymentMethod.bank && _selectedBankAccount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء اختيار الحساب البنكي'), backgroundColor: AppColors.none));
+      return;
+    }
+
     final app = context.read<AppProvider>();
     final student = app.getStudentById(widget.studentId)!;
     final amount = double.tryParse(_amount.text) ?? 0;
 
     if (amount <= 0) return;
+
+    final bankAccId = _method == PaymentMethod.bank ? _selectedBankAccount!.accountNumber : '';
 
     if (_isFullPayment) {
       double remainingToDistribute = amount;
@@ -85,6 +93,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
           method: _method,
           reference: _reference.text.trim(),
           date: _date,
+          bankAccountId: bankAccId,
         ));
         
         remainingToDistribute -= paidNow;
@@ -97,6 +106,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
         method: _method,
         reference: _reference.text.trim(),
         date: _date,
+        bankAccountId: bankAccId,
       ));
     }
 
@@ -184,13 +194,12 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 if (v != null) {
                   setState(() {
                     _method = v;
-                    _selectedBankAccount = null; // إعادة تعيين الحساب
+                    _selectedBankAccount = null;
                   });
                 } 
               },
             ),
 
-            // عرض الحسابات البنكية عند اختيار البنك
             if (_method == PaymentMethod.bank) ...[
               const SizedBox(height: 16),
               if (bankAccounts.isEmpty)
@@ -199,7 +208,17 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 DropdownButtonFormField<BankAccount>(
                   value: _selectedBankAccount,
                   decoration: const InputDecoration(labelText: 'اختر الحساب البنكي'),
-                  items: bankAccounts.map((b) => DropdownMenuItem(value: b, child: Text(b.bankName))).toList(),
+                  items: bankAccounts.map((b) => DropdownMenuItem(
+                    value: b,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${b.bankName} - ${b.accountName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('رقم الحساب: ${b.accountNumber}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      ],
+                    ),
+                  )).toList(),
                   onChanged: (v) => setState(() => _selectedBankAccount = v),
                 ),
               
