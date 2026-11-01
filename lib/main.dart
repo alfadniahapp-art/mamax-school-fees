@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_provider.dart';
 import 'screens/splash_screen.dart';
+import 'screens/home_screen.dart';
 import 'utils/helpers.dart';
 
 void main() {
@@ -11,7 +12,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()..load()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()), // تحميل الألوان المحفوظة
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()),
       ],
       child: const MamaxApp(),
     ),
@@ -24,6 +25,7 @@ class MamaxApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final app = context.watch<AppProvider>();
 
     return MaterialApp(
       title: 'رسومك الدراسية',
@@ -35,7 +37,7 @@ class MamaxApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      themeMode: ThemeMode.light, // إجبار الوضع الفاتح
+      themeMode: ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Tahoma',
@@ -44,7 +46,6 @@ class MamaxApp extends StatelessWidget {
           brightness: Brightness.light,
           surface: Colors.white,
         ),
-        // استخدام الخلفية الثابتة
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         appBarTheme: AppBarTheme(
           backgroundColor: themeProvider.primaryColor,
@@ -57,7 +58,10 @@ class MamaxApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child!,
       ),
-      home: const SplashScreen(),
+      // التوجيه بناءً على حالة الدخول المحفوظة
+      home: app.isLoading 
+          ? const SplashScreen() 
+          : (app.isUnlocked ? const HomeScreen() : const SplashScreen()),
     );
   }
 }
