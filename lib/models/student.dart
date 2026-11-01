@@ -61,32 +61,41 @@ class Student {
   DateTime? due3;
 
   Student({
-    required this.id,
-    required this.name,
-    required this.stage,
-    required this.cls,
-    this.gender = Gender.boys,
-    this.hasReg = false,
-    this.hasExam = false,
-    this.feeBase = 0,
-    this.feeReg = 0,
-    this.feeExam = 0,
-    this.inst1 = 0,
-    this.inst2 = 0,
-    this.inst3 = 0,
-    List<Payment>? payments,
-    this.due2,
-    this.due3,
+    required this.id, required this.name, required this.stage, required this.cls,
+    this.gender = Gender.boys, this.hasReg = false, this.hasExam = false,
+    this.feeBase = 0, this.feeReg = 0, this.feeExam = 0,
+    this.inst1 = 0, this.inst2 = 0, this.inst3 = 0,
+    List<Payment>? payments, this.due2, this.due3,
   }) : payments = payments ?? [];
 
   double get totalRequired => feeBase + feeReg + feeExam;
-  double get totalPaid => payments.fold(0, (s, p) => s + p.amount);
-  double get remaining => totalRequired - totalPaid;
-  double get paidPct => totalRequired > 0 ? (totalPaid / totalRequired).clamp(0.0, 1.0) : 0.0;
 
-  double paidFor(FeeType t) => payments.where((p) => p.type == t).fold(0.0, (s, p) => s + p.amount);
+  // إذا كان هناك دفعة شاملة، المدفوع هو كامل المطلوب
+  double get totalPaid {
+    if (payments.any((p) => p.isFullPayment)) return totalRequired;
+    return payments.fold(0, (s, p) => s + p.amount);
+  }
 
+  // المتبقي
+  double get remaining {
+    if (payments.any((p) => p.isFullPayment)) return 0;
+    return totalRequired - totalPaid;
+  }
+
+  double get paidPct {
+    if (payments.any((p) => p.isFullPayment)) return 1.0;
+    return totalRequired > 0 ? (totalPaid / totalRequired).clamp(0.0, 1.0) : 0.0;
+  }
+
+  // المدفوع لبند معين
+  double paidFor(FeeType t) {
+    if (payments.any((p) => p.isFullPayment)) return amountFor(t);
+    return payments.where((p) => p.type == t).fold(0.0, (s, p) => s + p.amount);
+  }
+
+  // المتبقي لبند معين
   double remainingFor(FeeType t) {
+    if (payments.any((p) => p.isFullPayment)) return 0;
     switch (t) {
       case FeeType.inst1: return (inst1 - paidFor(FeeType.inst1)).clamp(0, double.infinity);
       case FeeType.inst2: return (inst2 - paidFor(FeeType.inst2)).clamp(0, double.infinity);
@@ -109,38 +118,20 @@ class Student {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'stage': stage.index,
-        'cls': cls,
-        'gender': gender.index,
-        'hasReg': hasReg,
-        'hasExam': hasExam,
-        'feeBase': feeBase,
-        'feeReg': feeReg,
-        'feeExam': feeExam,
-        'inst1': inst1,
-        'inst2': inst2,
-        'inst3': inst3,
-        'due2': due2?.toIso8601String(),
-        'due3': due3?.toIso8601String(),
+        'id': id, 'name': name, 'stage': stage.index, 'cls': cls,
+        'gender': gender.index, 'hasReg': hasReg, 'hasExam': hasExam,
+        'feeBase': feeBase, 'feeReg': feeReg, 'feeExam': feeExam,
+        'inst1': inst1, 'inst2': inst2, 'inst3': inst3,
+        'due2': due2?.toIso8601String(), 'due3': due3?.toIso8601String(),
         'payments': payments.map((p) => p.toJson()).toList(),
       };
 
   factory Student.fromJson(Map<String, dynamic> j) => Student(
-        id: j['id'],
-        name: j['name'],
-        stage: Stage.values[j['stage']],
-        cls: j['cls'],
+        id: j['id'], name: j['name'], stage: Stage.values[j['stage']], cls: j['cls'],
         gender: Gender.values[j['gender'] ?? 0],
-        hasReg: j['hasReg'] ?? false,
-        hasExam: j['hasExam'] ?? false,
-        feeBase: (j['feeBase'] ?? 0).toDouble(),
-        feeReg: (j['feeReg'] ?? 0).toDouble(),
-        feeExam: (j['feeExam'] ?? 0).toDouble(),
-        inst1: (j['inst1'] ?? 0).toDouble(),
-        inst2: (j['inst2'] ?? 0).toDouble(),
-        inst3: (j['inst3'] ?? 0).toDouble(),
+        hasReg: j['hasReg'] ?? false, hasExam: j['hasExam'] ?? false,
+        feeBase: (j['feeBase'] ?? 0).toDouble(), feeReg: (j['feeReg'] ?? 0).toDouble(), feeExam: (j['feeExam'] ?? 0).toDouble(),
+        inst1: (j['inst1'] ?? 0).toDouble(), inst2: (j['inst2'] ?? 0).toDouble(), inst3: (j['inst3'] ?? 0).toDouble(),
         due2: j['due2'] != null ? DateTime.parse(j['due2']) : null,
         due3: j['due3'] != null ? DateTime.parse(j['due3']) : null,
         payments: (j['payments'] as List? ?? []).map((e) => Payment.fromJson(e)).toList(),
