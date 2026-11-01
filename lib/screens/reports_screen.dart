@@ -4,6 +4,9 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'dart:typed_data';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/student.dart';
 import '../models/transaction.dart';
 import '../providers/app_provider.dart';
@@ -17,14 +20,18 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   String _reportType = 'students';
+  
   String _scope = 'all';
   Stage _selectedStage = Stage.primary;
   Gender _selectedGender = Gender.boys;
   int _selectedClass = 1;
   String _paymentStatus = 'all';
-  String _treasuryType = 'all';
 
-  Future<Uint8List> _generatePdf(List<dynamic> data) async {
+  String _treasuryType = 'all';
+  String _treasuryAccount = 'all';
+
+  // دالة توليد تقرير الطلاب
+  Future<Uint8List> _generateStudentsPdf(List<Student> data) async {
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.cairoRegular();
     final fontBold = await PdfGoogleFonts.cairoBold();
@@ -37,50 +44,104 @@ class _ReportsScreenState extends State<ReportsScreen> {
         build: (ctx) => [
           pw.Header(
             level: 0,
-            child: pw.Text(
-              _reportType == 'students' ? 'تقرير رسوم الطلاب' : 'تقرير الخزينة والحسابات', 
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-              textDirection: pw.TextDirection.rtl,
-            ),
+            child: pw.Text('تقرير رسوم الطلاب', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
           ),
           pw.SizedBox(height: 10),
-          if (_reportType == 'students')
-            pw.TableHelper.fromTextArray(
-              cellAlignments: {
-                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.center,
-                3: pw.Alignment.center, 4: pw.Alignment.center, 5: pw.Alignment.center, 6: pw.Alignment.center,
-              },
-              headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
-              data: data.map<List<String>>((dynamic s) {
-                final student = s as Student;
-                final pct = student.paidPct;
-                final status = pct >= 1 ? 'مكتمل' : pct > 0 ? 'جزئي' : 'لم يدفع';
-                return [student.name, classNames[student.cls - 1], genderName(student.gender), money(student.totalRequired), money(student.totalPaid), money(student.remaining), status];
-              }).toList(),
-            )
-          else
-            pw.TableHelper.fromTextArray(
-              cellAlignments: {
-                0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.centerRight,
-                3: pw.Alignment.center, 4: pw.Alignment.center,
-              },
-              headers: ['التاريخ', 'النوع', 'الجهة', 'طريقة الدفع', 'المبلغ'],
-              data: data.map<List<String>>((dynamic t) {
-                final tx = t as FinancialTransaction;
-                return [
-                  dateStr(tx.date), 
-                  tx.type == 'deposit' ? 'إيداع' : tx.type == 'withdraw' ? 'سحب' : 'تحويل', 
-                  tx.entityName, 
-                  tx.method == 'cash' ? 'كاش' : 'بنك', 
-                  money(tx.amount)
-                ];
-              }).toList(),
-            ),
+          pw.TableHelper.fromTextArray(
+            cellAlignments: {
+              0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.center,
+              3: pw.Alignment.center, 4: pw.Alignment.center, 5: pw.Alignment.center, 6: pw.Alignment.center,
+            },
+            headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
+            data: data.map<List<String>>((s) {
+              final pct = s.paidPct;
+              final status = pct >= 1 ? 'مكتمل' : pct > 0 ? 'جزئي' : 'لم يدفع';
+              return [s.name, classNames[s.cls - 1], genderName(s.gender), money(s.totalRequired), money(s.totalPaid), money(s.remaining), status];
+            }).toList(),
+          ),
         ],
       ),
     );
-
     return pdf.save();
+  }
+
+  // دالة توليد تقرير الخزينة
+  Future<Uint8List> _generateTreasuryPdf(List<FinancialTransaction> data) async {
+    final pdf = pw.Document();
+    final font = await PdfGoogleFonts.cairoRegular();
+    final fontBold = await PdfGoogleFonts.cairoBold();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        textDirection: pw.TextDirection.rtl,
+        theme: pw.ThemeData.withFont(base: font, bold: fontBold),
+        build: (ctx) => [
+          pw.Header(
+            level: 0,
+            child: pw.Text('تقرير الخزينة والحسابات', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
+          ),
+          pw.SizedBox(height: 10),
+          pw.TableHelper.fromTextArray(
+            cellAlignments: {
+              0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.centerRight,
+              3: pw.Alignment.center, 4: pw.Alignment.center,
+            },
+            headers: ['التاريخ', 'النوع', 'الجهة', 'طريقة الدفع', 'المبلغ'],
+            data: data.map<List<String>>((tx) {
+              return [
+                dateStr(tx.date), 
+                tx.type == 'deposit' ? 'إيداع' : tx.type == 'withdraw' ? 'سحب' : 'تحويل', 
+                tx.entityName, 
+                tx.method == 'cash' ? 'كاش' : 'بنك', 
+                money(tx.amount)
+              ];
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+    return pdf.save();
+  }
+
+  // حفظ ملفين منفصلين
+  Future<void> _saveTwoFiles(AppProvider app) async {
+    final studentsData = app.students;
+    final transactionsData = app.transactions;
+
+    if (studentsData.isEmpty && transactionsData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لا توجد بيانات لحفظها')));
+      return;
+    }
+
+    try {
+      // توليد ملف الطلاب
+      if (studentsData.isNotEmpty) {
+        final studentBytes = await _generateStudentsPdf(studentsData);
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/تقرير_الطلاب.pdf');
+        await file.writeAsBytes(studentBytes);
+        await Share.shareXFiles([XFile(file.path, mimeType: 'application/pdf')], text: 'تقرير الطلاب');
+      }
+
+      // توليد ملف الخزينة (بعد مهلة بسيطة لتجنب تداخل المشاركة)
+      await Future.delayed(const Duration(seconds: 2));
+      if (transactionsData.isNotEmpty) {
+        final treasuryBytes = await _generateTreasuryPdf(transactionsData);
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/تقرير_الخزينة.pdf');
+        await file.writeAsBytes(treasuryBytes);
+        await Share.shareXFiles([XFile(file.path, mimeType: 'application/pdf')], text: 'تقرير الخزينة');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم تجهيز الملفين للمشاركة'), backgroundColor: AppColors.ok));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('حدث خطأ: $e'), backgroundColor: AppColors.none));
+      }
+    }
   }
 
   void _showPreview(BuildContext context, List<dynamic> data) {
@@ -89,7 +150,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
       builder: (ctx) => _PdfPreviewDialog(
         data: data,
         reportType: _reportType,
-        generatePdf: () => _generatePdf(data),
+        generatePdf: () => _reportType == 'students' 
+            ? _generateStudentsPdf(data.cast<Student>()) 
+            : _generateTreasuryPdf(data.cast<FinancialTransaction>()),
       ),
     );
   }
@@ -113,8 +176,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       }).toList();
     } else {
       reportData = app.transactions.where((tx) {
-        if (_treasuryType == 'all') return true;
-        return tx.type == _treasuryType;
+        if (_treasuryType != 'all' && tx.type != _treasuryType) return false;
+        if (_treasuryAccount == 'cash' && tx.method != 'cash') return false;
+        if (_treasuryAccount != 'all' && _treasuryAccount != 'cash') {
+          if (tx.method != 'bank' || tx.bankAccountId != _treasuryAccount) return false;
+        }
+        return true;
       }).toList();
     }
 
@@ -126,8 +193,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.save_alt),
+            tooltip: 'حفظ ملفين منفصلين',
+            onPressed: () => _saveTwoFiles(app),
+          ),
+          IconButton(
             icon: const Icon(Icons.picture_as_pdf),
-            tooltip: 'معاينة وطباعة PDF',
+            tooltip: 'معاينة وطباعة التقرير الحالي',
             onPressed: reportData.isEmpty ? null : () => _showPreview(context, reportData),
           ),
         ],
@@ -135,7 +207,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       body: Column(
         children: [
           _buildReportTypeSelector(),
-          _reportType == 'students' ? _buildStudentFilters() : _buildTreasuryFilters(),
+          _reportType == 'students' ? _buildStudentFilters() : _buildTreasuryFilters(app),
           Expanded(
             child: reportData.isEmpty
                 ? const Center(child: Text('لا توجد بيانات مطابقة', style: TextStyle(color: Colors.grey, fontSize: 16)))
@@ -176,7 +248,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: AppColors.cardBorder(context), width: 1.5),
+                  side: BorderSide(color: AppColors.chipBorder(context), width: 1.5),
                 ),
               ),
             ),
@@ -193,7 +265,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: AppColors.cardBorder(context), width: 1.5),
+                  side: BorderSide(color: AppColors.chipBorder(context), width: 1.5),
                 ),
               ),
             ),
@@ -249,14 +321,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildTreasuryFilters() {
+  Widget _buildTreasuryFilters(AppProvider app) {
+    final accountOptions = <DropdownMenuItem<String>>[
+      const DropdownMenuItem(value: 'all', child: Text('كل الحسابات')),
+      const DropdownMenuItem(value: 'cash', child: Text('الصندوق (كاش)')),
+      ...app.settings.bankAccounts.map((b) => DropdownMenuItem(value: b.accountNumber, child: Text('${b.bankName} - ${b.accountName}'))),
+    ];
+
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('تصفية حسب نوع العملية:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+          const Text('نوع العملية:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -268,6 +346,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(width: 6),
               _chipTreasury('تحويلات', 'transfer'),
             ],
+          ),
+          const SizedBox(height: 16),
+          const Text('الحساب:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _treasuryAccount,
+            decoration: _inputDecoration('اختر الحساب'),
+            items: accountOptions,
+            onChanged: (v) => setState(() => _treasuryAccount = v ?? 'all'),
           ),
         ],
       ),
