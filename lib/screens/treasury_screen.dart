@@ -14,6 +14,8 @@ class TreasuryScreen extends StatelessWidget {
     final totalDeposits = app.transactions.where((tx) => tx.type == 'deposit').fold(0.0, (s, e) => s + e.amount);
     final totalWithdraws = app.transactions.where((tx) => tx.type == 'withdraw').fold(0.0, (s, e) => s + e.amount);
     final currentBalance = totalDeposits - totalWithdraws;
+    
+    final bankAccounts = app.settings.bankAccounts;
 
     return Scaffold(
       backgroundColor: AppColors.bg(context),
@@ -25,6 +27,7 @@ class TreasuryScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // بطاقة الرصيد الحالي الإجمالي
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -48,6 +51,7 @@ class TreasuryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           
+          // بطاقات الإجماليات
           Row(
             children: [
               Expanded(child: _balanceCard(context, 'إجمالي الإيداعات', totalDeposits, Icons.arrow_downward, AppColors.ok)),
@@ -57,15 +61,55 @@ class TreasuryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           
+          // رصيد الصندوق
           Row(
             children: [
-              Expanded(child: _balanceCard(context, 'رصيد الصندوق', app.cashBalance, Icons.money, Colors.green.shade600)),
-              const SizedBox(width: 16),
-              Expanded(child: _balanceCard(context, 'رصيد البنك', app.bankBalance, Icons.account_balance, Colors.blue.shade600)),
+              Expanded(child: _balanceCard(context, 'رصيد الصندوق (كاش)', app.cashBalance, Icons.money, Colors.green.shade600)),
+              Expanded(child: _balanceCard(context, 'إجمالي البنك', app.bankBalance, Icons.account_balance, Colors.blue.shade600)),
             ],
           ),
           const SizedBox(height: 24),
           
+          // تفاصيل الحسابات البنكية
+          if (bankAccounts.isNotEmpty) ...[
+            Text('أرصدة الحسابات البنكية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark(context))),
+            const SizedBox(height: 12),
+            ...bankAccounts.map((acc) {
+              final balance = app.getBankAccountBalance(acc.accountNumber);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface(context),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.cardBorder(context), width: 1.5),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 4))],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.blue.shade50,
+                      child: Icon(Icons.account_balance, color: Colors.blue.shade700),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(acc.bankName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text('${acc.accountName} • ${acc.accountNumber}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    Text(money(balance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary(context))),
+                  ],
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 24),
+          ],
+          
+          // أزرار العمليات
           Row(
             children: [
               Expanded(child: _actionBtn('إيداع', Icons.add_circle, Colors.green.shade600, () => _showTransactionDialog(context, 'deposit'))),
@@ -77,6 +121,7 @@ class TreasuryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
           
+          // سجل العمليات
           Text('سجل العمليات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark(context))),
           const SizedBox(height: 12),
           if (app.transactions.isEmpty)
@@ -105,9 +150,9 @@ class TreasuryScreen extends StatelessWidget {
             child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(height: 12),
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey), textAlign: TextAlign.center),
           const SizedBox(height: 4),
-          Text(money(balance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
+          Text(money(balance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
         ],
       ),
     );
@@ -199,13 +244,12 @@ class TreasuryScreen extends StatelessWidget {
   void _showTransactionDialog(BuildContext context, String type, {FinancialTransaction? existingTx}) {
     final entityCtrl = TextEditingController(text: existingTx?.entityName ?? '');
     final amountCtrl = TextEditingController(text: existingTx?.amount.toString() ?? '');
-    final bankNameCtrl = TextEditingController(text: existingTx?.bankName ?? '');
-    final accHolderCtrl = TextEditingController(text: existingTx?.accountHolderName ?? '');
     final refCtrl = TextEditingController(text: existingTx?.referenceNumber ?? '');
     
     String method = existingTx?.method ?? 'cash';
     String fromAcc = existingTx?.fromAccount ?? 'cash';
     String toAcc = existingTx?.toAccount ?? 'bank';
+    String selectedBankId = existingTx?.bankAccountId ?? '';
 
     showModalBottomSheet(
       context: context,
@@ -213,6 +257,8 @@ class TreasuryScreen extends StatelessWidget {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) {
+          final bankAccounts = context.read<AppProvider>().settings.bankAccounts;
+          
           return Container(
             decoration: BoxDecoration(color: AppColors.bg(context), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 20, right: 20, top: 20),
@@ -240,9 +286,15 @@ class TreasuryScreen extends StatelessWidget {
 
                   if (method == 'bank' && type != 'transfer') ...[
                     const SizedBox(height: 12),
-                    TextField(controller: bankNameCtrl, decoration: _dialogInputDecoration(context, 'اسم البنك')),
-                    const SizedBox(height: 12),
-                    TextField(controller: accHolderCtrl, decoration: _dialogInputDecoration(context, 'اسم صاحب الحساب')),
+                    if (bankAccounts.isEmpty)
+                      const Text('لا توجد حسابات بنكية مضافة', style: TextStyle(color: Colors.red, fontSize: 12))
+                    else
+                      DropdownButtonFormField<String>(
+                        value: selectedBankId.isEmpty ? null : selectedBankId,
+                        decoration: _dialogInputDecoration(context, 'اختر الحساب البنكي'),
+                        items: bankAccounts.map((b) => DropdownMenuItem(value: b.accountNumber, child: Text('${b.bankName} - ${b.accountName}'))).toList(),
+                        onChanged: (v) => setState(() => selectedBankId = v ?? ''),
+                      ),
                     const SizedBox(height: 12),
                     TextField(controller: refCtrl, decoration: _dialogInputDecoration(context, 'رقم العملية / الإيصال')),
                   ],
@@ -264,8 +316,7 @@ class TreasuryScreen extends StatelessWidget {
                             entityName: entityCtrl.text.trim(),
                             amount: amount,
                             date: existingTx?.date ?? DateTime.now(),
-                            bankName: bankNameCtrl.text.trim(),
-                            accountHolderName: accHolderCtrl.text.trim(),
+                            bankAccountId: method == 'bank' ? selectedBankId : '',
                             referenceNumber: refCtrl.text.trim(),
                           );
                           
@@ -302,7 +353,7 @@ class TreasuryScreen extends StatelessWidget {
       fillColor: AppColors.surface(context),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5), // الحدود الملونة هنا
+        borderSide: BorderSide(color: AppColors.inputBorder(context), width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
