@@ -1,21 +1,51 @@
+class BankAccount {
+  String bankName;
+  String accountName;
+  String accountNumber;
+  String phone;
+
+  BankAccount({
+    this.bankName = '',
+    this.accountName = '',
+    this.accountNumber = '',
+    this.phone = '',
+  });
+
+  Map<String, dynamic> toJson() => {
+        'bankName': bankName,
+        'accountName': accountName,
+        'accountNumber': accountNumber,
+        'phone': phone,
+      };
+
+  factory BankAccount.fromJson(Map<String, dynamic> j) => BankAccount(
+        bankName: j['bankName'] ?? '',
+        accountName: j['accountName'] ?? '',
+        accountNumber: j['accountNumber'] ?? '',
+        phone: j['phone'] ?? '',
+      );
+}
+
 class AppSettings {
   double pctA, pctB, pctC;
-  int warnDays1, warnDays2, warnDays3; // 3 تنبيهات
+  int warnDays1, warnDays2, warnDays3;
   int alertRepeatCount;
   String bankName, bankAccountName, bankAccountNumber, bankPhone;
   String schoolName, accountantName;
+  List<BankAccount> bankAccounts;
 
   AppSettings({
     this.pctA = 50, this.pctB = 25, this.pctC = 25,
-    this.warnDays1 = 14, // افتراضي 14 يوم
-    this.warnDays2 = 7,  // افتراضي 7 أيام
-    this.warnDays3 = 1,  // افتراضي يوم واحد
+    this.warnDays1 = 14,
+    this.warnDays2 = 7,
+    this.warnDays3 = 1,
     this.alertRepeatCount = 1,
     this.bankName = '', this.bankAccountName = '',
     this.bankAccountNumber = '', this.bankPhone = '',
     this.schoolName = 'اسم المدرسة',
     this.accountantName = 'اسم المحاسب',
-  });
+    List<BankAccount>? bankAccounts,
+  }) : bankAccounts = bankAccounts ?? [];
 
   Map<String, dynamic> toJson() => {
         'pctA': pctA, 'pctB': pctB, 'pctC': pctC,
@@ -24,6 +54,7 @@ class AppSettings {
         'bankName': bankName, 'bankAccountName': bankAccountName,
         'bankAccountNumber': bankAccountNumber, 'bankPhone': bankPhone,
         'schoolName': schoolName, 'accountantName': accountantName,
+        'bankAccounts': bankAccounts.map((b) => b.toJson()).toList(),
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -36,5 +67,6 @@ class AppSettings {
         bankAccountNumber: j['bankAccountNumber'] ?? '', bankPhone: j['bankPhone'] ?? '',
         schoolName: j['schoolName'] ?? 'اسم المدرسة',
         accountantName: j['accountantName'] ?? 'اسم المحاسب',
+        bankAccounts: (j['bankAccounts'] as List? ?? []).map((e) => BankAccount.fromJson(e)).toList(),
       );
 }
