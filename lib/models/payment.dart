@@ -11,27 +11,28 @@ class Payment {
   PaymentMethod method;
   String reference; 
   DateTime date;
-  String bankAccountId; // جديد: لربط الدفعة بحساب بنكي
+  String bankAccountId;
+  bool isFullPayment; // حقل يحدد إذا كانت الدفعة شاملة لكل الأقساط
 
   Payment({
     required this.id, required this.type, required this.amount,
     required this.method, required this.reference, required this.date,
-    this.bankAccountId = '', // القيمة الافتراضية
+    this.bankAccountId = '',
+    this.isFullPayment = false,
   });
 
-  // إضافة اختصار (getter) لرقم العملية لكي يتوافق مع الكود
   String get ref => reference;
 
   Map<String, dynamic> toJson() => {
         'id': id, 'type': type.index, 'amount': amount,
         'method': method.index, 'reference': reference, 'date': date.toIso8601String(),
-        'bankAccountId': bankAccountId,
+        'bankAccountId': bankAccountId, 'isFullPayment': isFullPayment,
       };
 
   factory Payment.fromJson(Map<String, dynamic> j) => Payment(
         id: j['id'], type: FeeType.values[j['type']], amount: (j['amount'] ?? 0).toDouble(),
         method: PaymentMethod.values[j['method']], reference: j['reference'] ?? '',
-        date: DateTime.parse(j['date']),
-        bankAccountId: j['bankAccountId'] ?? '',
+        date: DateTime.parse(j['date']), bankAccountId: j['bankAccountId'] ?? '',
+        isFullPayment: j['isFullPayment'] ?? false,
       );
 }
