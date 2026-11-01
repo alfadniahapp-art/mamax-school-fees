@@ -12,8 +12,9 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _pctA, _pctB, _pctC, _warnDays1, _warnDays2, _warnDays3;
-  late TextEditingController _bankNameCtrl, _bankName, _bankAcc, _bankPhone;
   late TextEditingController _schoolNameCtrl, _accountantNameCtrl;
+  
+  List<BankAccount> _bankAccounts = [];
 
   @override
   void initState() {
@@ -25,12 +26,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _warnDays1 = TextEditingController(text: '${s.warnDays1}');
     _warnDays2 = TextEditingController(text: '${s.warnDays2}');
     _warnDays3 = TextEditingController(text: '${s.warnDays3}');
-    _bankNameCtrl = TextEditingController(text: s.bankName);
-    _bankName = TextEditingController(text: s.bankAccountName);
-    _bankAcc = TextEditingController(text: s.bankAccountNumber);
-    _bankPhone = TextEditingController(text: s.bankPhone);
     _schoolNameCtrl = TextEditingController(text: s.schoolName);
     _accountantNameCtrl = TextEditingController(text: s.accountantName);
+    
+    _bankAccounts = List.from(s.bankAccounts);
   }
 
   Future<void> _save() async {
@@ -42,17 +41,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
       warnDays1: int.tryParse(_warnDays1.text) ?? 14,
       warnDays2: int.tryParse(_warnDays2.text) ?? 7,
       warnDays3: int.tryParse(_warnDays3.text) ?? 1,
-      bankName: _bankNameCtrl.text.trim(),
-      bankAccountName: _bankName.text.trim(),
-      bankAccountNumber: _bankAcc.text.trim(),
-      bankPhone: _bankPhone.text.trim(),
       schoolName: _schoolNameCtrl.text.trim(),
       accountantName: _accountantNameCtrl.text.trim(),
+      bankAccounts: _bankAccounts,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم حفظ الإعدادات'), backgroundColor: AppColors.ok));
       Navigator.pop(context);
     }
+  }
+
+  void _addBankAccount() {
+    final bankCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+    final accCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('إضافة حساب بنكي'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: bankCtrl, decoration: const InputDecoration(labelText: 'اسم البنك')),
+            const SizedBox(height: 8),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'اسم صاحب الحساب')),
+            const SizedBox(height: 8),
+            TextField(controller: accCtrl, decoration: const InputDecoration(labelText: 'رقم الحساب')),
+            const SizedBox(height: 8),
+            TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'رقم الهاتف')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          ElevatedButton(
+            onPressed: () {
+              if (bankCtrl.text.isNotEmpty && accCtrl.text.isNotEmpty) {
+                setState(() {
+                  _bankAccounts.add(BankAccount(
+                    bankName: bankCtrl.text.trim(),
+                    accountName: nameCtrl.text.trim(),
+                    accountNumber: accCtrl.text.trim(),
+                    phone: phoneCtrl.text.trim(),
+                  ));
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('إضافة'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -73,6 +114,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextField(controller: _schoolNameCtrl, decoration: _inputDecoration(context, 'اسم المدرسة')),
             const SizedBox(height: 12),
             TextField(controller: _accountantNameCtrl, decoration: _inputDecoration(context, 'اسم المحاسب')),
+          ]),
+
+          // إدارة الحسابات البنكية
+          _buildCard('الحسابات البنكية (للتحويلات)', [
+            if (_bankAccounts.isEmpty)
+              const Text('لا توجد حسابات مضافة', style: TextStyle(color: Colors.grey)),
+            ..._bankAccounts.asMap().entries.map((entry) {
+              final index = entry.key;
+              final acc = entry.value;
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  title: Text('${acc.bankName} - ${acc.accountName}'),
+                  subtitle: Text('${acc.accountNumber} • ${acc.phone}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => setState(() => _bankAccounts.removeAt(index)),
+                  ),
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: _addBankAccount,
+              icon: const Icon(Icons.add),
+              label: const Text('إضافة حساب بنكي جديد'),
+            ),
           ]),
           
           _buildCard('النسخ الاحتياطي', [
@@ -99,7 +167,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           _buildCard('المظهر والألوان', [
-            // اللون الأساسي
             const Text('اللون الأساسي للتطبيق:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -109,12 +176,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _colorDot(const Color(0xFF0B4A3D), themeProv, 'primary'),
                 _colorDot(const Color(0xFF2563EB), themeProv, 'primary'),
                 _colorDot(const Color(0xFF7C3AED), themeProv, 'primary'),
-                _pickColorBtn(context, themeProv, 'primary'), // منتقي اللون الأساسي
+                _pickColorBtn(context, themeProv, 'primary'),
               ],
             ),
             const Divider(height: 30),
-            
-            // لون حدود البطاقات
             const Text('لون حدود البطاقات:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -128,8 +193,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             const Divider(height: 30),
-
-            // لون حدود مربعات الإدخال
             const Text('لون حدود مربعات الإدخال:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -143,8 +206,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             const Divider(height: 30),
-
-            // لون حدود أزرار الاختيار
             const Text('لون حدود أزرار الاختيار:', style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
@@ -183,16 +244,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Expanded(child: TextField(controller: _warnDays3, keyboardType: TextInputType.number, decoration: _inputDecoration(context, 'التنبيه الثالث'))),
               ],
             ),
-          ]),
-
-          _buildCard('بيانات البنك', [
-            TextField(controller: _bankNameCtrl, decoration: _inputDecoration(context, 'اسم البنك')),
-            const SizedBox(height: 12),
-            TextField(controller: _bankName, decoration: _inputDecoration(context, 'اسم صاحب الحساب')),
-            const SizedBox(height: 12),
-            TextField(controller: _bankAcc, decoration: _inputDecoration(context, 'رقم الحساب')),
-            const SizedBox(height: 12),
-            TextField(controller: _bankPhone, decoration: _inputDecoration(context, 'رقم الهاتف')),
           ]),
 
           const SizedBox(height: 30),
