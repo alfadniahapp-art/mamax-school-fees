@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart'; // ضروري لإنشاء الملف
 import '../models/student.dart';
 import '../models/payment.dart';
 import '../models/settings.dart';
@@ -24,7 +25,7 @@ class AppProvider extends ChangeNotifier {
   static const _kPin = 'app_pin_v1';
   static const _kTransactions = 'transactions_v1';
   static const _kClassFees = 'class_fees_v1';
-  static const _kUnlocked = 'is_unlocked_v1'; // حفظ حالة الدخول
+  static const _kUnlocked = 'is_unlocked_v1'; 
 
   Map<String, double> _classFees = {};
 
@@ -99,7 +100,6 @@ class AppProvider extends ChangeNotifier {
 
   bool checkPin(String input) => input == _pinCode;
   
-  // دوال الدخول والخروج مع حفظ الحالة
   void unlock() async {
     isUnlocked = true;
     notifyListeners();
@@ -228,16 +228,17 @@ class AppProvider extends ChangeNotifier {
       'pin': _pinCode,
     });
     
-    // تسمية الملف الجديدة
-    final fileName = 'Mamx_For_Schools_${DateTime.now().millisecondsSinceEpoch}.json';
-    
-    final file = XFile.fromData(
-      utf8.encode(data), 
-      name: fileName, 
-      mimeType: 'application/json'
+    // إنشاء الملف مؤقتاً باسمنا المخصص
+    final directory = await getTemporaryDirectory();
+    final fileName = 'Mamx_For_Schools.json';
+    final file = File('${directory.path}/$fileName');
+    await file.writeAsString(data);
+
+    // مشاركة الملف
+    await Share.shareXFiles(
+      [XFile(file.path, name: fileName, mimeType: 'application/json')], 
+      text: 'نسخة احتياطية من بيانات رسوم الطلاب'
     );
-    
-    await Share.shareXFiles([file], text: 'نسخة احتياطية من بيانات رسوم الطلاب');
   }
 
   Future<bool> importData() async {
