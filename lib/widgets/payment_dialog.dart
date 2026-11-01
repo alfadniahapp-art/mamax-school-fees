@@ -30,6 +30,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   late TextEditingController _amount;
   final _reference = TextEditingController();
   DateTime _date = DateTime.now();
+  bool _isFullPayment = false; // متغير لتحديد إذا كان السداد كاملاً
 
   @override
   void initState() {
@@ -55,16 +56,57 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final app = context.read<AppProvider>();
+    final student = app.getStudentById(widget.studentId)!;
     final amount = double.tryParse(_amount.text) ?? 0;
+
     if (amount <= 0) return;
 
-    await app.addPayment(widget.studentId, Payment(
-      id: app.newId(), type: _type, amount: amount, method: _method, reference: _reference.text.trim(), date: _date,
-    ));
+    if (_isFullPayment) {
+      // سداد كامل: توزيع المبلغ على جميع البنود المتبقية
+      double remainingToDistribute = amount;
+      
+      // ترتيب البنود حسب الأولوية (تسجيل، امتحانات، قسط أول، ثاني، ثالث)
+      final types = <FeeType>[];
+      if (student.hasReg && student.remainingFor(FeeType.reg) > 0) types.add(FeeType.reg);
+      if (student.hasExam && student.remainingFor(FeeType.exam) > 0) types.add(FeeType.exam);
+      if (student.remainingFor(FeeType.inst1) > 0) types.add(FeeType.inst1);
+      if (student.remainingFor(FeeType.inst2) > 0) types.add(FeeType.inst2);
+      if (student.remainingFor(FeeType.inst3) > 0) types.add(FeeType.inst3);
+
+      for (var type in types) {
+        if (remainingToDistribute <= 0) break;
+        final rem = student.remainingFor(type);
+        final paidNow = remainingToDistribute >= rem ? rem : remainingToDistribute;
+        
+        await app.addPayment(widget.studentId, Payment(
+          id: app.newId(),
+          type: type,
+          amount: paidNow,
+          method: _method,
+          reference: _reference.text.trim(),
+          date: _date,
+        ));
+        
+        remainingToDistribute -= paidNow;
+      }
+    } else {
+      // سداد عادي لبند واحد
+      await app.addPayment(widget.studentId, Payment(
+        id: app.newId(),
+        type: _type,
+        amount: amount,
+        method: _method,
+        reference: _reference.text.trim(),
+        date: _date,
+      ));
+    }
 
     if (mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('✓ تم تسجيل دفعة بمبلغ ${money(amount)}'), backgroundColor: AppColors.ok));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('✓ تم تسجيل دفعة بمبلغ ${money(amount)}'),
+        backgroundColor: AppColors.ok,
+      ));
     }
   }
 
@@ -72,7 +114,7 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   Widget build(BuildContext context) {
     final app = context.watch<AppProvider>();
     final student = app.getStudentById(widget.studentId)!;
-    final rem = student.remainingFor(_type);
+    final rem = student.remaining;
 
     final options = <FeeType>[];
     if (student.hasReg) options.add(FeeType.reg);
@@ -92,20 +134,44 @@ class _PaymentSheetState extends State<_PaymentSheet> {
             const SizedBox(height: 16),
             Text('تسجيل دفعة - ${student.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
             const SizedBox(height: 20),
-            DropdownButtonFormField<FeeType>(
-              value: _type,
-              decoration: const InputDecoration(labelText: 'نوع الرسوم / القسط'),
-              items: options.map((t) => DropdownMenuItem(value: t, child: Text('${feeTypeLabel(t)} — متبقي ${money(student.remainingFor(t))}'))).toList(),
+
+            // مفتاح السداد الكامل
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('سداد كامل المديونية', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('المتبقي الكلي: ${money(rem)}', style: const TextStyle(fontSize: 12)),
+              value: _isFullPayment,
               onChanged: (v) {
-                if (v == null) return;
-                setState(() { _type = v; _amount.text = student.remainingFor(v).toStringAsFixed(0); });
+                setState(() {
+                  _isFullPayment = v;
+                  if (v) {
+                    _amount.text = rem.toStringAsFixed(0);
+                  }
+                });
               },
             ),
-            const SizedBox(height: 16),
+            const Divider(),
+
+            if (!_isFullPayment) ...[
+              DropdownButtonFormField<FeeType>(
+                value: _type,
+                decoration: const InputDecoration(labelText: 'نوع الرسوم / القسط'),
+                items: options.map((t) => DropdownMenuItem(value: t, child: Text('${feeTypeLabel(t)} — متبقي ${money(student.remainingFor(t))}'))).toList(),
+                onChanged: (v) {
+                  if (v == null) return;
+                  setState(() { _type = v; _amount.text = student.remainingFor(v).toStringAsFixed(0); });
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+
             TextFormField(
               controller: _amount,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'المبلغ', helperText: 'المتبقي: ${money(rem)}'),
+              decoration: InputDecoration(
+                labelText: 'المبلغ',
+                helperText: _isFullPayment ? 'سيتم توزيع المبلغ على جميع البنود' : 'المتبقي: ${money(rem)}',
+              ),
               validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0 ? 'أدخل مبلغاً صحيحاً' : null,
             ),
             const SizedBox(height: 16),
