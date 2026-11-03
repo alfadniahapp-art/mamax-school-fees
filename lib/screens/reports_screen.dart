@@ -7,10 +7,24 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
+// استيراد مكتبات معالجة اللغة العربية
+import 'package:arabic_reshaper/arabic_reshaper.dart';
+import 'package:bidi/bidi.dart' as bidi;
+
 import '../models/student.dart';
 import '../models/transaction.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
+
+// دالة مساعدة لتجهيز النص العربي (توصيل الحروف + ضبط الاتجاه)
+String fixArabic(String text) {
+  if (text.isEmpty) return "";
+  // 1. توصيل الحروف العربية
+  var reshaped = ArabicReshaper(configuration: ArabicReshaperConfig(deleteHarakat: true)).reshape(text);
+  // 2. تحويل النص ليقرأ من اليمين لليسار
+  return bidi.Bidi.logicalToVisual(reshaped);
+}
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -44,20 +58,39 @@ class _ReportsScreenState extends State<ReportsScreen> {
         build: (ctx) => [
           pw.Header(
             level: 0,
-            child: pw.Text('تقرير رسوم الطلاب', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
+            child: pw.Text(
+              fixArabic('تقرير رسوم الطلاب'), 
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              textDirection: pw.TextDirection.rtl, // فرض الاتجاه
+            ),
           ),
           pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
+            headerDirection: pw.TextDirection.rtl, // اتجاه رأس الجدول
+            cellAlignment: pw.Alignment.centerRight, // محاذاة النص لليمين
             cellAlignments: {
               0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.center,
               3: pw.Alignment.center, 4: pw.Alignment.center, 5: pw.Alignment.center, 6: pw.Alignment.center,
             },
-            headers: ['الطالب', 'الفصل', 'القسم', 'المطلوب', 'المدفوع', 'المتبقي', 'الحالة'],
+            headers: [
+              fixArabic('الطالب'), fixArabic('الفصل'), fixArabic('القسم'), 
+              fixArabic('المطلوب'), fixArabic('المدفوع'), fixArabic('المتبقي'), fixArabic('الحالة')
+            ],
             data: data.map<List<String>>((s) {
               final pct = s.paidPct;
               final status = pct >= 1 ? 'مكتمل' : pct > 0 ? 'جزئي' : 'لم يدفع';
-              return [s.name, classNames[s.cls - 1], genderName(s.gender), money(s.totalRequired), money(s.totalPaid), money(s.remaining), status];
+              return [
+                fixArabic(s.name), 
+                fixArabic(classNames[s.cls - 1]), 
+                fixArabic(genderName(s.gender)), 
+                money(s.totalRequired), 
+                money(s.totalPaid), 
+                money(s.remaining), 
+                fixArabic(status)
+              ];
             }).toList(),
+            headerStyle: pw.TextStyle(font: fontBold),
+            cellStyle: pw.TextStyle(font: font),
           ),
         ],
       ),
@@ -79,24 +112,35 @@ class _ReportsScreenState extends State<ReportsScreen> {
         build: (ctx) => [
           pw.Header(
             level: 0,
-            child: pw.Text('تقرير الخزينة والحسابات', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
+            child: pw.Text(
+              fixArabic('تقرير الخزينة والحسابات'), 
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              textDirection: pw.TextDirection.rtl,
+            ),
           ),
           pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
+            headerDirection: pw.TextDirection.rtl,
+            cellAlignment: pw.Alignment.centerRight,
             cellAlignments: {
               0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.centerRight,
               3: pw.Alignment.center, 4: pw.Alignment.center,
             },
-            headers: ['التاريخ', 'النوع', 'الجهة', 'طريقة الدفع', 'المبلغ'],
+            headers: [
+              fixArabic('التاريخ'), fixArabic('النوع'), fixArabic('الجهة'), 
+              fixArabic('طريقة الدفع'), fixArabic('المبلغ')
+            ],
             data: data.map<List<String>>((tx) {
               return [
-                dateStr(tx.date), 
-                tx.type == 'deposit' ? 'إيداع' : tx.type == 'withdraw' ? 'سحب' : 'تحويل', 
-                tx.entityName, 
-                tx.method == 'cash' ? 'كاش' : 'بنك', 
+                fixArabic(dateStr(tx.date)), 
+                fixArabic(tx.type == 'deposit' ? 'إيداع' : tx.type == 'withdraw' ? 'سحب' : 'تحويل'), 
+                fixArabic(tx.entityName), 
+                fixArabic(tx.method == 'cash' ? 'كاش' : 'بنك'), 
                 money(tx.amount)
               ];
             }).toList(),
+            headerStyle: pw.TextStyle(font: fontBold),
+            cellStyle: pw.TextStyle(font: font),
           ),
         ],
       ),
