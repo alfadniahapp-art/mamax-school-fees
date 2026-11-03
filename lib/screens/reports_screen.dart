@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'package:arabic_reshaper/arabic_reshaper.dart';
+import 'package:arabic_reshaper_plus/arabic_reshaper_plus.dart';
 import 'package:bidi/bidi.dart' as bidi;
 
 import '../models/student.dart';
@@ -40,8 +40,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<Uint8List> _generateStudentsPdf(List<Student> data) async {
     final pdf = pw.Document();
-    final font = await PdfGoogleFonts.cairoRegular();
-    final fontBold = await PdfGoogleFonts.cairoBold();
+    final font = await PdfGoogleFonts.amiriRegular();
+    final fontBold = await PdfGoogleFonts.amiriBold();
 
     pdf.addPage(
       pw.MultiPage(
@@ -84,8 +84,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<Uint8List> _generateTreasuryPdf(List<FinancialTransaction> data) async {
     final pdf = pw.Document();
-    final font = await PdfGoogleFonts.cairoRegular();
-    final fontBold = await PdfGoogleFonts.cairoBold();
+    final font = await PdfGoogleFonts.amiriRegular();
+    final fontBold = await PdfGoogleFonts.amiriBold();
 
     pdf.addPage(
       pw.MultiPage(
