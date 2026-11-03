@@ -19,6 +19,9 @@ dependencies:
   printing: ^5.11.1
   file_picker: ^8.0.0+1
   share_plus: ^9.0.0
+  # المكتبات الجديدة المضافة لمعالجة اللغة العربية
+  arabic_reshaper: ^2.0.0
+  bidi: ^2.0.0
 
 dev_dependencies:
   flutter_test:
