@@ -20,8 +20,8 @@ import '../utils/helpers.dart';
 // دالة مساعدة لتجهيز النص العربي (توصيل الحروف + ضبط الاتجاه)
 String fixArabic(String text) {
   if (text.isEmpty) return "";
-  // 1. توصيل الحروف العربية
-  var reshaped = ArabicReshaper(configuration: ArabicReshaperConfig(deleteHarakat: true)).reshape(text);
+  // 1. توصيل الحروف العربية (بدون إعدادات إضافية)
+  var reshaped = ArabicReshaper().reshape(text);
   // 2. تحويل النص ليقرأ من اليمين لليسار
   return bidi.Bidi.logicalToVisual(reshaped);
 }
@@ -61,13 +61,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
             child: pw.Text(
               fixArabic('تقرير رسوم الطلاب'), 
               style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-              textDirection: pw.TextDirection.rtl, // فرض الاتجاه
+              textDirection: pw.TextDirection.rtl,
             ),
           ),
           pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
-            headerDirection: pw.TextDirection.rtl, // اتجاه رأس الجدول
-            cellAlignment: pw.Alignment.centerRight, // محاذاة النص لليمين
+            headerDirection: pw.TextDirection.rtl,
+            cellAlignment: pw.Alignment.centerRight,
             cellAlignments: {
               0: pw.Alignment.centerRight, 1: pw.Alignment.center, 2: pw.Alignment.center,
               3: pw.Alignment.center, 4: pw.Alignment.center, 5: pw.Alignment.center, 6: pw.Alignment.center,
@@ -159,7 +159,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     try {
-      // توليد ملف الطلاب
       if (studentsData.isNotEmpty) {
         final studentBytes = await _generateStudentsPdf(studentsData);
         final dir = await getTemporaryDirectory();
@@ -168,7 +167,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         await Share.shareXFiles([XFile(file.path, mimeType: 'application/pdf')], text: 'تقرير الطلاب');
       }
 
-      // توليد ملف الخزينة (بعد مهلة بسيطة لتجنب تداخل المشاركة)
       await Future.delayed(const Duration(seconds: 2));
       if (transactionsData.isNotEmpty) {
         final treasuryBytes = await _generateTreasuryPdf(transactionsData);
