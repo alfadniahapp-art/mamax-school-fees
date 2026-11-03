@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-// استيراد مكتبات معالجة اللغة العربية
 import 'package:arabic_reshaper/arabic_reshaper.dart';
 import 'package:bidi/bidi.dart' as bidi;
 
@@ -17,12 +16,9 @@ import '../models/transaction.dart';
 import '../providers/app_provider.dart';
 import '../utils/helpers.dart';
 
-// دالة مساعدة لتجهيز النص العربي (توصيل الحروف + ضبط الاتجاه)
 String fixArabic(String text) {
   if (text.isEmpty) return "";
-  // 1. توصيل الحروف العربية (بدون إعدادات إضافية)
   var reshaped = ArabicReshaper().reshape(text);
-  // 2. تحويل النص ليقرأ من اليمين لليسار
   return bidi.Bidi.logicalToVisual(reshaped);
 }
 
@@ -34,17 +30,14 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   String _reportType = 'students';
-  
   String _scope = 'all';
   Stage _selectedStage = Stage.primary;
   Gender _selectedGender = Gender.boys;
   int _selectedClass = 1;
   String _paymentStatus = 'all';
-
   String _treasuryType = 'all';
   String _treasuryAccount = 'all';
 
-  // دالة توليد تقرير الطلاب
   Future<Uint8List> _generateStudentsPdf(List<Student> data) async {
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.cairoRegular();
@@ -58,11 +51,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         build: (ctx) => [
           pw.Header(
             level: 0,
-            child: pw.Text(
-              fixArabic('تقرير رسوم الطلاب'), 
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-              textDirection: pw.TextDirection.rtl,
-            ),
+            child: pw.Text(fixArabic('تقرير رسوم الطلاب'), style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
           ),
           pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
@@ -80,13 +69,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
               final pct = s.paidPct;
               final status = pct >= 1 ? 'مكتمل' : pct > 0 ? 'جزئي' : 'لم يدفع';
               return [
-                fixArabic(s.name), 
-                fixArabic(classNames[s.cls - 1]), 
-                fixArabic(genderName(s.gender)), 
-                money(s.totalRequired), 
-                money(s.totalPaid), 
-                money(s.remaining), 
-                fixArabic(status)
+                fixArabic(s.name), fixArabic(classNames[s.cls - 1]), fixArabic(genderName(s.gender)), 
+                money(s.totalRequired), money(s.totalPaid), money(s.remaining), fixArabic(status)
               ];
             }).toList(),
             headerStyle: pw.TextStyle(font: fontBold),
@@ -98,7 +82,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return pdf.save();
   }
 
-  // دالة توليد تقرير الخزينة
   Future<Uint8List> _generateTreasuryPdf(List<FinancialTransaction> data) async {
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.cairoRegular();
@@ -112,11 +95,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         build: (ctx) => [
           pw.Header(
             level: 0,
-            child: pw.Text(
-              fixArabic('تقرير الخزينة والحسابات'), 
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-              textDirection: pw.TextDirection.rtl,
-            ),
+            child: pw.Text(fixArabic('تقرير الخزينة والحسابات'), style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
           ),
           pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
@@ -148,7 +127,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return pdf.save();
   }
 
-  // حفظ ملفين منفصلين
   Future<void> _saveTwoFiles(AppProvider app) async {
     final studentsData = app.students;
     final transactionsData = app.transactions;
