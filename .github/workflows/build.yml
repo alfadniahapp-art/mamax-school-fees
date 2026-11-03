@@ -1,70 +1,33 @@
-name: Build Flutter APK
+name: mamax_school_fees
+description: نظام إدارة رسوم الطلاب
+publish_to: 'none'
+version: 1.0.0+1
 
-on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
+environment:
+  sdk: '>=3.0.0 <4.0.0'
 
-jobs:
-  build:
-    name: Build Android APK
-    runs-on: ubuntu-latest
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  provider: ^6.1.1
+  shared_preferences: ^2.2.2
+  intl: ^0.18.1
+  uuid: ^4.2.1
+  pdf: ^3.10.8
+  printing: ^5.11.1
+  file_picker: ^8.0.0+1
+  share_plus: ^9.0.0
+  arabic_reshaper: ^2.0.0
+  bidi: ^2.0.0
 
-    steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          path: app_source
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
 
-      - name: ☕ Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: 🐦 Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.0'
-          channel: 'stable'
-          cache: true
-
-      - name: 🏗️ Create Flutter Project & Copy Source
-        run: |
-          flutter create build_app --project-name mamax_school_fees --platforms android --org com.mamax
-          cp -r app_source/lib build_app/
-          cp app_source/pubspec.yaml build_app/
-          if [ -f app_source/logo.png ]; then cp app_source/logo.png build_app/; fi
-
-      - name: 🔧 Configure Android & Fix Kotlin
-        working-directory: build_app
-        run: |
-          sed -i 's/android:label="mamax_school_fees"/android:label="رسومك الدراسية"/g' android/app/src/main/AndroidManifest.xml
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
-          
-          # حل تعارض Kotlin
-          sed -i '/^dependencies {/i \    configurations.all { resolutionStrategy { eachDependency { details -> if (details.requested.group == "org.jetbrains.kotlin") { details.useVersion("1.8.22") } } } }\n' android/app/build.gradle
-          
-          if [ -f "logo.png" ]; then
-            cp logo.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-            cp logo.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          fi
-
-      - name: 📦 Install Dependencies
-        working-directory: build_app
-        run: flutter pub get
-
-      - name: 🔨 Build APK
-        working-directory: build_app
-        run: flutter build apk --release
-
-      - name: 📤 Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: mamax-school-fees-apk
-          path: build_app/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
+flutter:
+  uses-material-design: true
+  assets:
+    - logo.png
